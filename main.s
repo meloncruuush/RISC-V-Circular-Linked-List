@@ -4,16 +4,13 @@ listInput: .string "ADD~DEL~PRINT"
 
 .text
 
-ADD: # Rimozione di un elemento dalla lista
+main:
+    j DECODING:
     
-DEL: # Rimozione di un elementi dalla lista
-    
-PRINT: # Stampa tutti gli elementi della lista
-    
-SORT: # Organizza la lista in ordine crescente
-    
-SDX: # Shift a destra degli elementi della lista (rotazione oraria)
-     
-SSX: # Shift a sinistra degli elementi della lista (rotazione antioraria)
-    
-REV: # Inversione degli elementi della lista
+DECODING:
+    check_initial_spaces:
+        lb t1 0(a1)
+        li t2 32
+        bne t1 t2 CHECK_ADD
+        addi a1 a1 1
+        j check_initial_spaces
