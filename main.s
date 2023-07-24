@@ -56,9 +56,28 @@ DECODING:
         li t2 41
         bne t1 t2 check_next_instruction # controllo se è parantesiL, altrimenti formattata male
         
-            
+        check_spaces_after_ADD:
+            addi a1 a1 1
+            lb t1 0(a1)
+            li t2 32
+            beq t1 t2 check_spaces_after_ADD
+        
+        lb t1 0(a1)
+        li t2 126                         # ASCII tilda
+        beq t1 t2 ADD                     # decoding completo, valore salvato, procediamo con ADD
+        
+        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
+        li t2 0                           # ASCII null, fine stringa input
+        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
+        j ADD                             # perchè?
+        
+                    
+        
         CHECK_PRINT:
             j main
             
         check_next_instruction:
+            j main
+            
+        ADD:
             j main
