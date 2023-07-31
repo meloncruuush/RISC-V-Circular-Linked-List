@@ -3,7 +3,7 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(1)~ADD(a)~ADD()~ADD(B)~ADD~ADD(9)~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B)~ PRINT~REV~PRINT"
+listInput: .string "ADD(9)"
 lfsr: .word 372198
 
 newline: .string "\n"
@@ -70,14 +70,7 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_ADD
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 ADD                     # decoding completo, valore salvato, procediamo con ADD
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
-        j ADD                             # perchè?
+        j ADD
 
 
 
@@ -300,45 +293,60 @@ DECODING:
         bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
         j SSX   
 
+
+
     check_next_instruction:
-            j main
-
-
-
-
+            lb t1 0(a1)     # ciclo che continua finchè non trova ~ e proseguie il decoding, o null e chiude il programma
+            
+            li t2 0         # null                        
+            beq t1 t2 exit
+            
+            li t2 126       # tilda
+            beq t1 t2 DECODING
+            
+            addi a1 a1 1
+            
+            j check_next_instruction
 
 
         
 # OPERAZIONI    
 ADD:
-    j main
+    j check_next_instruction
 
 
 
 PRINT:
-    j main
+    j check_next_instruction
 
 
 
 DEL:
-    j main
+    j check_next_instruction
 
 
 
 REV:
-    j main
+    j check_next_instruction
 
 
 
 SORT:
-    j main
+    j check_next_instruction
 
 
 
 SDX:
-    j main
+    j check_next_instruction
 
 
 
 SSX:
-    j main
+    j check_next_instruction
+
+
+
+exit:
+    li a7, 1    # ecall with a7 = 1 means print
+    ecall
+    
