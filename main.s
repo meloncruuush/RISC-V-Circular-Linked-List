@@ -64,11 +64,7 @@ DECODING:
         li t2 41
         bne t1 t2 check_next_instruction # controllo se è parantesiR, altrimenti formattata male
         
-        check_spaces_after_ADD:          # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_ADD
+        jal x1, check_spaces
         
         j ADD
 
@@ -99,11 +95,7 @@ DECODING:
         li t2 84
         bne t1 t2 check_next_instruction # controllo se è T, //
         
-        check_spaces_after_PRINT:        # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_PRINT
+        jal x1, check_spaces
         
         j PRINT
 
@@ -141,11 +133,7 @@ DECODING:
         li t2 41
         bne t1 t2 check_next_instruction # controllo se è parantesiL, altrimenti formattata male
         
-        check_spaces_after_DEL:          # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_DEL
+        jal x1, check_spaces
         
         j DEL
 
@@ -166,11 +154,7 @@ DECODING:
         li t2 86
         bne t1 t2 check_next_instruction            # controllo se è R, //        
      
-        check_spaces_after_REV:                     # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_REV
+        jal x1, check_spaces
         
         j REV
 
@@ -211,11 +195,7 @@ DECODING:
         li t2 84
         bne t1 t2 check_next_instruction # controllo se è T, //
         
-        check_spaces_after_SORT:        # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_SORT
+        jal x1, check_spaces
         
         j SORT
 
@@ -227,11 +207,7 @@ DECODING:
         li t2 88
         bne t1 t2 check_next_instruction # controllo se è X, se no, è formattata male, prossima istruzione
  
-        check_spaces_after_sdx:        # ciclo, come riusarlo anche per le altre? TODO
-            addi a1 a1 1
-            lb t1 0(a1)
-            li t2 32
-            beq t1 t2 check_spaces_after_sdx
+        jal x1, check_spaces
         
         j SDX   
 
@@ -243,13 +219,18 @@ DECODING:
         li t2 88
         bne t1 t2 check_next_instruction # controllo se è X, se no, è formattata male, prossima istruzione
  
-        check_spaces_after_ssx:        # ciclo, come riusarlo anche per le altre? TODO
+        jal x1, check_spaces
+        
+        j SSX   
+
+
+
+    check_spaces:          
             addi a1 a1 1
             lb t1 0(a1)
             li t2 32
-            beq t1 t2 check_spaces_after_ssx
-        
-        j SSX   
+            beq t1 t2 check_spaces
+            jalr x0, x1, 0
 
 
 
