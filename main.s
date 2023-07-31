@@ -3,7 +3,7 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(9)"
+listInput: .string "ADD(3)~PRINT~SSX"
 lfsr: .word 372198
 
 newline: .string "\n"
@@ -76,17 +76,17 @@ DECODING:
 
     check_print:
         lb t1 0(a1)
-        li t2 50
+        li t2 80
         bne t1 t2 check_del              # controllo se è P, altrimenti passo alla prossima, MISSING??? TODO
         
         addi a1 a1 1
         lb t1 0(a1)
-        li t2 52
+        li t2 82
         bne t1 t2 check_next_instruction # controllo se è R, se no, è formattata male, prossima istruzione
     
         addi a1 a1 1
         lb t1 0(a1)
-        li t2 49
+        li t2 73
         bne t1 t2 check_next_instruction # controllo se è I, //        
 
         addi a1 a1 1
@@ -105,14 +105,7 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_PRINT
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 PRINT                   # decoding completo, valore salvato, procediamo con PRINT
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
-        j PRINT                           # perchè?
+        j PRINT
 
 
 
@@ -154,14 +147,7 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_DEL
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 ADD                     # decoding completo, valore salvato, procediamo con DEL
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
-        j DEL                             # perchè?
+        j DEL
 
 
 
@@ -186,14 +172,7 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_REV
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 REV                     # decoding completo, valore salvato, procediamo con REV
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
-        j REV                             # perchè?
+        j REV
 
 
 
@@ -238,14 +217,7 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_SORT
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 SORT                    # decoding completo, valore salvato, procediamo con SORT
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
-        j SORT                            # perchè?
+        j SORT
 
 
 
@@ -261,13 +233,6 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_sdx
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 SDX                   # decoding completo, valore salvato, procediamo con SORT
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
         j SDX   
 
 
@@ -284,13 +249,6 @@ DECODING:
             li t2 32
             beq t1 t2 check_spaces_after_ssx
         
-        lb t1 0(a1)
-        li t2 126                         # ASCII tilda
-        beq t1 t2 SSX                     # decoding completo, valore salvato, procediamo con SORT
-        
-        lb t1 0(a1)                       # perchè carico di nuovo? posso togliere? TODO
-        li t2 0                           # ASCII null, fine stringa input
-        bne t1 t2 check_next_instruction  # se non è null, prossima istruzione
         j SSX   
 
 
@@ -302,11 +260,15 @@ DECODING:
             beq t1 t2 exit
             
             li t2 126       # tilda
-            beq t1 t2 DECODING
+            beq t1 t2 next_instruction
             
             addi a1 a1 1
             
             j check_next_instruction
+            
+    next_instruction:
+        addi a1, a1, 1
+        j DECODING
 
 
         
