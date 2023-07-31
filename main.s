@@ -35,22 +35,22 @@ DECODING:
     check_add:
         lb t1 0(a1)
         li t2 65
-        bne t1 t2 check_print            # controllo se è A, altrimenti passo alla prossima, PRINT
+        bne t1 t2 check_print            # controllo se è A, altrimenti provo P per PRINT
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_next_instruction # controllo se è D, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è D, se non lo è, formattazione errata, passo a prossima istruzione
     
         addi a1 a1 1
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_next_instruction # controllo se è D, //
+        bne t1 t2 check_next_instruction # D
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 40
-        bne t1 t2 check_next_instruction # controllo se è parantesiL, altrimenti formattata male
+        bne t1 t2 check_next_instruction # parentesiL
         
         addi a1 a1 1
         lb a2 0(a1)                      # questa volta salvo il carattere in a2
@@ -62,7 +62,7 @@ DECODING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 41
-        bne t1 t2 check_next_instruction # controllo se è parantesiR, altrimenti formattata male
+        bne t1 t2 check_next_instruction # parantesiR
         
         jal x1, check_spaces
         
@@ -73,27 +73,27 @@ DECODING:
     check_print:
         lb t1 0(a1)
         li t2 80
-        bne t1 t2 check_del              # controllo se è P, altrimenti passo alla prossima, MISSING??? TODO
+        bne t1 t2 check_del              # controllo se è P, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 82
-        bne t1 t2 check_next_instruction # controllo se è R, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction # R
     
         addi a1 a1 1
         lb t1 0(a1)
         li t2 73
-        bne t1 t2 check_next_instruction # controllo se è I, //        
+        bne t1 t2 check_next_instruction # I
 
         addi a1 a1 1
         lb t1 0(a1)
         li t2 78
-        bne t1 t2 check_next_instruction # controllo se è N, //
+        bne t1 t2 check_next_instruction # N
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 84
-        bne t1 t2 check_next_instruction # controllo se è T, //
+        bne t1 t2 check_next_instruction # T
         
         jal x1, check_spaces
         
@@ -104,34 +104,34 @@ DECODING:
     check_del:
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_rev              # controllo se è D, altrimenti passo alla prossima, MISSING
+        bne t1 t2 check_rev               # controllo se è D, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 69
-        bne t1 t2 check_next_instruction  # controllo se è E, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction  # E
     
         addi a1 a1 1
         lb t1 0(a1)
         li t2 76
-        bne t1 t2 check_next_instruction  # controllo se è L, //
+        bne t1 t2 check_next_instruction  # L
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 40
-        bne t1 t2 check_next_instruction # controllo se è parantesiL, altrimenti formattata male
+        bne t1 t2 check_next_instruction  # parantesiL
         
         addi a1 a1 1
-        lb a2 0(a1)                      # questa volta salvo il carattere in a2
+        lb a2 0(a1)                       # questa volta salvo il carattere in a2
         li t2 32
-        blt a2 t2 check_next_instruction # if < 32, TODO, ma non è 47 < x < 58 ? 
+        blt a2 t2 check_next_instruction  # if < 32, TODO, ma non è 47 < x < 58 ? 
         li t2 125
-        bgt a2 t2 check_next_instruction # if > 125
+        bgt a2 t2 check_next_instruction  # if > 125
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 41
-        bne t1 t2 check_next_instruction # controllo se è parantesiL, altrimenti formattata male
+        bne t1 t2 check_next_instruction # parentesiR
         
         jal x1, check_spaces
         
@@ -142,17 +142,17 @@ DECODING:
     check_rev:
         lb t1 0(a1)
         li t2 82
-        bne t1 t2 check_s            # controllo se è R
+        bne t1 t2 check_s                           # controllo se è R, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 69
-        bne t1 t2 check_next_instruction            # controllo se è E, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction            # E
     
         addi a1 a1 1
         lb t1 0(a1)
         li t2 86
-        bne t1 t2 check_next_instruction            # controllo se è R, //        
+        bne t1 t2 check_next_instruction            # R
      
         jal x1, check_spaces
         
@@ -163,21 +163,21 @@ DECODING:
     check_s:
         lb t1 0(a1)
         li t2 83
-        bne t1 t2 check_next_instruction  # controllo se è S, altrimenti passo alla prossima, rev
+        bne t1 t2 check_next_instruction  # controllo se è S, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         
         lb t1 0(a1)
         li t2 79
-        beq t1 t2 check_sort              # controllo se è O di sort, se no, prossima
+        beq t1 t2 check_sort              # controllo se è O di sort
         
         lb t1 0(a1)
         li t2 86
-        beq t1 t2 check_sdx               # controllo se è V di svx, se no, prossima
+        beq t1 t2 check_sdx               # controllo se è V di svx
         
         lb t1 0(a1)
         li t2 83
-        beq t1 t2 check_ssx               # controllo se è S di ssx, se no, avanti
+        beq t1 t2 check_ssx               # controllo se è S di ssx
         
         j check_next_instruction
         
@@ -188,12 +188,12 @@ DECODING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 82
-        bne t1 t2 check_next_instruction # controllo se è R        
+        bne t1 t2 check_next_instruction # controllo se è R, se non lo è, formattazione errata, passo a prossima istruzione        
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 84
-        bne t1 t2 check_next_instruction # controllo se è T, //
+        bne t1 t2 check_next_instruction # controllo se è T
         
         jal x1, check_spaces
         
@@ -205,7 +205,7 @@ DECODING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 88
-        bne t1 t2 check_next_instruction # controllo se è X, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è X, se non lo è, formattazione errata, passo a prossima istruzione
  
         jal x1, check_spaces
         
@@ -217,7 +217,7 @@ DECODING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 88
-        bne t1 t2 check_next_instruction # controllo se è X, se no, è formattata male, prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è X, se non lo è, formattazione errata, passo a prossima istruzione
  
         jal x1, check_spaces
         
@@ -235,12 +235,12 @@ DECODING:
 
 
     check_next_instruction:
-            lb t1 0(a1)     # ciclo che continua finchè non trova ~ e proseguie il decoding, o null e chiude il programma
+            lb t1 0(a1)                 # ciclo che continua finchè non trova ~ e prosegue il decoding, o null e chiude il programma
             
-            li t2 0         # null                        
+            li t2 0                     # null                        
             beq t1 t2 exit
             
-            li t2 126       # tilda
+            li t2 126                   # tilda
             beq t1 t2 next_instruction
             
             addi a1 a1 1
@@ -290,6 +290,6 @@ SSX:
 
 
 exit:
-    li a7, 1    # ecall with a7 = 1 means print
+    li a7, 1    
     ecall
     
