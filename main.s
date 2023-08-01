@@ -3,16 +3,16 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3)~PRINT~SSX"
-lfsr: .word 372198
+listInput: .string "ADD(3) ~ PRIT~SSX"
+lfsr: .word 372198        # ma che è?
 
 newline: .string "\n"
 
 .text
 
-lw s0 lfsr        # Non so cosa siano le 
-li s1 0           # prime tre variabili
-li s2 0           #
+lw s0 lfsr        # Che è?
+li s1 0           # Indirizzo della testa
+li s2 0           # Indirizzo della coda
 la s4 listInput   
 
 add a1 s4 zero    # Mette il primo carattere in a1
@@ -55,7 +55,7 @@ DECODING:
         addi a1 a1 1
         lb a2 0(a1)                      # questa volta salvo il carattere in a2
         li t2 32
-        blt a2 t2 check_next_instruction # if < 32, TODO, ma non è 47 < x < 58 ? 
+        blt a2 t2 check_next_instruction # if < 32
         li t2 125
         bgt a2 t2 check_next_instruction # if > 125
         
@@ -255,6 +255,36 @@ DECODING:
         
 # OPERAZIONI    
 ADD:
+    jal address_generator        # genero l'indirizzo in cui salvare il nodo
+    
+    bne s1 zero not_first_ADD    
+    
+    add s1 a3 zero               # credo che in a3 ci sia l'indirizzo del nodo testa, lo metto in s1
+    li t0 0xffffffff             # carico la dimensione della linked list in t1 
+    
+    sw t0 0(a3)                  # puntatore precedente
+    sw t0 5(a3)                  # puntatore successivo
+    sb a2 4(a3)                  # contenuto del nodo
+    
+    add s2 a3 zero               # aggiorno il nodo coda   
+    
+    j DECODING
+    
+    not_first_ADD:
+        li t0 0xffffffff         # carico dimensione della lista
+        sb a2 4(a3)              # salvo il byte nel nodo
+        sw t0 5(a3)              # puntatore al successivo
+        
+        sw a3 5(s2)              # aggiorno il puntatore al successivo del nodo precedente
+        
+        sw s2 0(a3)              # puntatore al precedente  
+        
+        add s2 a3 zero           # aggiorno variabile che tiene la coda
+        
+        j DECODING
+        
+    
+    
     j check_next_instruction
 
 
@@ -286,6 +316,37 @@ SDX:
 
 SSX:
     j check_next_instruction
+
+
+
+address_generator:  # s0 = 372198
+    srli t0 s0 0    # divido per 2^n, quindi ora diviso s0 per 2^0=1    t0 = 372198
+    srli t1 s0 2    # divido per 4                                      t1 = 93049
+    srli t2 s0 3    # divido per 8                                      t2 = 46524
+    srli t3 s0 5    # divido per 32                                     t3 = 11631
+
+    xor t0 t0 t1    # xor era che se so uguali danno 1, se so diversi danno 0
+    xor t0 t0 t2
+    xor t0 t0 t3
+
+    srli t1 s0 1
+    slli t0 t0 15
+    or t1 t1 t0
+ 
+    li t4 0x0000ffff                    # boh vabe, per ora lo lascio così, poi vedrò di capirlo e sistemarlo un po'
+    and t1 t1 t4                        
+    li t4 0x00010000                    # boh manco ho voglia di vedere dove viene salvato l'indirizzo per ora
+    or a3 t1 t4
+    add s0 a3 zero
+
+    add t0 a3 zero
+    lw t1 0(t0)
+    bne t1 zero address_generator
+    lb t1 4(t0)
+    bne t1 zero address_generator
+    lw t1 5(t0)
+    bne t1 zero address_generator
+    jr ra
 
 
 
