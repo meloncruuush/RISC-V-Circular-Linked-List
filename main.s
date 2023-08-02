@@ -3,7 +3,7 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3)~ADD(5)~ADD(~)~ADD(1)~ADD(1)~ADD(})~PRINT~ADD(3)~ADD(5)~ADD(~)~ADD(1)~ADD(1)~ADD(})~PRINT"
+listInput: .string "ADD(3)~ADD(5)~PRINT~DEL(3)~PRINT"
 lfsr:      .word 612178        # seme iniziale, ho scritto un numero a caso
 
 newline:   .string "\n"
@@ -320,15 +320,14 @@ PRINT:
 
 
 DEL:
-
     li t0 0xffffffff
     add t1 s1 zero
-    beq t1 zero DECODING
+    beq t1 zero check_next_instruction    # controllo se c'è almeno un elemento nella lista
     DEL_loop:
         lb t2 4(t1)
         beq a2 t2 delete_element
         lw t1 5(t1)
-        beq t1 t0 DECODING
+        beq t1 t0 check_next_instruction
         j DEL_loop
 
     delete_element:
@@ -358,7 +357,7 @@ DEL:
         sb zero 4(t1)
         sw zero 5(t1)
         add s1 zero zero
-        j DECODING
+        j check_next_instruction
 
     del_last_element:
         sw t0 5(t4)
@@ -366,7 +365,7 @@ DEL:
         sb zero 4(t1)
         sw zero 5(t1)
         add s2 t4 zero
-        j DECODING
+        j check_next_instruction
     j check_next_instruction
 
 
