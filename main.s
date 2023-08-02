@@ -3,10 +3,14 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3)~ADD(5)~ADD(9)~PRINT"
-lfsr: .word 372198        # ma che è?
+listInput: .string "ADD(3)~ADD(5)~ADD(~)~ADD(1)~ADD(1)~ADD(})~PRINT~ADD(3)~ADD(5)~ADD(~)~ADD(1)~ADD(1)~ADD(})~PRINT"
+lfsr:      .word 612178        # seme iniziale, ho scritto un numero a caso
 
-newline: .string "\n"
+newline:   .string "\n"
+space:     .string " "
+squareL:   .string "[ "
+squareR:   .string "]"
+
 
 .text
 
@@ -261,7 +265,6 @@ ADD:
     
     add s1 a3 zero               # credo che in a3 ci sia l'indirizzo del nodo testa, lo metto in s1
     li t0 0xffffffff             # carico la dimensione della linked list in t1 
-    
     sw t0 0(a3)                  # puntatore precedente
     sw t0 5(a3)                  # puntatore successivo
     sb a2 4(a3)                  # contenuto del nodo
@@ -272,11 +275,9 @@ ADD:
     
     not_first_ADD:
         li t0 0xffffffff         # carico dimensione della lista
-        sb a2 4(a3)              # salvo il byte nel nodo
+        sb a2 4(a3)              # salvo il dato nel nodo
         sw t0 5(a3)              # puntatore al successivo
-        
         sw a3 5(s2)              # aggiorno il puntatore al successivo del nodo precedente
-        
         sw s2 0(a3)              # puntatore al precedente  
         
         add s2 a3 zero           # aggiorno variabile che tiene la coda
@@ -289,14 +290,28 @@ PRINT:
     li t0 0xffffffff
     add t1 s1 zero
     beq t1 zero check_next_instruction
+    
+    la a0 squareL # print the square parenthesis
+    li a7 4
+    ecall
     PRINT_loop:
         beq t0 t1 new_line
-        lb a0 4(t1)
-        li a7 11
+        
+        lb a0 4(t1)     # print the element
+        li a7 11        
         ecall
+        
+        la a0 space     # print the comma
+        li a7 4
+        ecall
+        
         lw t1 5(t1)
         j PRINT_loop
         new_line:
+            la a0 squareR    # print the square parenthesis
+            li a7 4
+            ecall
+            
             la a0 newline
             li a7 4
             ecall
@@ -305,6 +320,53 @@ PRINT:
 
 
 DEL:
+
+    li t0 0xffffffff
+    add t1 s1 zero
+    beq t1 zero DECODING
+    DEL_loop:
+        lb t2 4(t1)
+        beq a2 t2 delete_element
+        lw t1 5(t1)
+        beq t1 t0 DECODING
+        j DEL_loop
+
+    delete_element:
+        lw t4 0(t1)
+        lw t5 5(t1)
+        beq t0 t4 del_first_element
+        beq t0 t5 del_last_element
+        sw t5 5(t4)
+        sw t4 0(t5)
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        j DECODING
+
+    del_first_element:
+        beq t0 t5 del_only_element
+        sw t0 0(t5)
+
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s1 t5 zero
+        j DECODING 
+
+    del_only_element:
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s1 zero zero
+        j DECODING
+
+    del_last_element:
+        sw t0 5(t4)
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s2 t4 zero
+        j DECODING
     j check_next_instruction
 
 
@@ -329,33 +391,35 @@ SSX:
 
 
 
-address_generator:  # s0 = 372198
-    srli t0 s0 0    # divido per 2^n, quindi ora diviso s0 per 2^0=1    t0 = 372198
-    srli t1 s0 2    # divido per 4                                      t1 = 93049
-    srli t2 s0 3    # divido per 8                                      t2 = 46524
-    srli t3 s0 5    # divido per 32                                     t3 = 11631
+address_generator:
+    srli t1 s0 2    # lfsr >> 2
+    srli t2 s0 3    # lfsr >> 3
+    srli t3 s0 5    # lfsr >> 5
 
-    xor t0 t0 t1    # xor era che se so uguali danno 1, se so diversi danno 0
+    xor t0 t0 t1
     xor t0 t0 t2
-    xor t0 t0 t3
+    xor t0 t0 t3    
 
     srli t1 s0 1
     slli t0 t0 15
-    or t1 t1 t0
+    
+    or t1 t1 t0 
  
-    li t4 0x0000ffff                    # boh vabe, per ora lo lascio così, poi vedrò di capirlo e sistemarlo un po'
-    and t1 t1 t4                        
-    li t4 0x00010000                    # boh manco ho voglia di vedere dove viene salvato l'indirizzo per ora
+    li t4 0x0000ffff
+    and t1 t1 t4
+    
+    li t4 0x00010000
     or a3 t1 t4
+    
     add s0 a3 zero
-
     add t0 a3 zero
-    lw t1 0(t0)
-    bne t1 zero address_generator
+    
+    lw t1 0(t0)                   # controllo se la memoria è libera
+    bne t1 zero address_generator # byte 0-3 (PBACK)
     lb t1 4(t0)
-    bne t1 zero address_generator
-    lw t1 5(t0)
-    bne t1 zero address_generator
+    bne t1 zero address_generator # byte 4 (DATA)
+    lw t1 4(t0)
+    bne t1 zero address_generator # byte 5-8 (PAHEAD)
     jr ra
 
 
