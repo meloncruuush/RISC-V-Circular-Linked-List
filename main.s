@@ -3,7 +3,7 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3) ~ PRIT~SSX"
+listInput: .string "ADD(3)~ADD(5)~ADD(9)~PRINT"
 lfsr: .word 372198        # ma che è?
 
 newline: .string "\n"
@@ -255,7 +255,7 @@ DECODING:
         
 # OPERAZIONI    
 ADD:
-    jal address_generator        # genero l'indirizzo in cui salvare il nodo
+    jal address_generator        # genero l'indirizzo in cui salvare il nodo. Indirizzo in a3
     
     bne s1 zero not_first_ADD    
     
@@ -268,7 +268,7 @@ ADD:
     
     add s2 a3 zero               # aggiorno il nodo coda   
     
-    j DECODING
+    j check_next_instruction
     
     not_first_ADD:
         li t0 0xffffffff         # carico dimensione della lista
@@ -281,16 +281,26 @@ ADD:
         
         add s2 a3 zero           # aggiorno variabile che tiene la coda
         
-        j DECODING
-        
-    
-    
-    j check_next_instruction
+        j check_next_instruction
 
 
 
 PRINT:
-    j check_next_instruction
+    li t0 0xffffffff
+    add t1 s1 zero
+    beq t1 zero check_next_instruction
+    PRINT_loop:
+        beq t0 t1 new_line
+        lb a0 4(t1)
+        li a7 11
+        ecall
+        lw t1 5(t1)
+        j PRINT_loop
+        new_line:
+            la a0 newline
+            li a7 4
+            ecall
+            j check_next_instruction
 
 
 
@@ -351,6 +361,6 @@ address_generator:  # s0 = 372198
 
 
 exit:
-    li a7, 1    
+    li a7, 10
     ecall
     
