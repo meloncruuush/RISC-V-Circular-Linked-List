@@ -3,8 +3,12 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3)~ADD(5)~ADD(4)~ADD(7)~ADD(3)~PRINT~SORT~PRINT~DEL(3)~DEL(3)~PRINT~ADD(1)~ADD(3)~PRINT~REV~PRINT"
-lfsr:      .word 612178        # seme iniziale, ho scritto un numero a caso
+# listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
+# listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
+# listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~PRINT"
+
+lfsr:      .word 612178        # Seme del generatore di indirizzi, è un numero a caso
 
 newline:   .string "\n"
 space:     .string " "
@@ -14,15 +18,12 @@ squareR:   .string "]"
 
 .text
 
-lw s0 lfsr        # Che è?
-li s1 0           # Indirizzo della testa
+lw s0 lfsr        # Seme del generatore di indirizzi
+li s1 0           # Puntatore alla testa
 li s2 0           # Indirizzo della coda
 la s4 listInput   
 
 add a1 s4 zero    # Mette il primo carattere in a1
-
-main:
-    j PARSING
 
 
 
@@ -258,60 +259,56 @@ PARSING:
 
         
 # OPERAZIONI    
+
 ADD:
     jal address_generator        # genero l'indirizzo in cui salvare il nodo. Indirizzo in a3
     
     bne s1 zero not_first_ADD    
     
-    add s1 a3 zero               # credo che in a3 ci sia l'indirizzo del nodo testa, lo metto in s1
-    li t0 0xffffffff             # 0xffffffff significa null TODO il puntatore deve puntare all'elemento stesso. Lista circolare.
-    sw t0 0(a3)                  # puntatore precedente
-    sw t0 5(a3)                  # puntatore successivo
-    sb a2 4(a3)                  # contenuto del nodo
-    
-    add s2 a3 zero               # aggiorno il nodo coda   
+    add s1 a3 zero               # Aggiorno il puntatore alla testa
+    sb a2 0(a3)                  # Salvo DATA
+    sw s1 1(a3)                  # Salvo PAHEAD 
+    add s2 a3 zero               # Aggiorno il puntatore alla coda
     
     j check_next_instruction
     
     not_first_ADD:
-        li t0 0xffffffff         # carico dimensione della lista
-        sb a2 4(a3)              # salvo il dato nel nodo
-        sw t0 5(a3)              # puntatore al successivo
-        sw a3 5(s2)              # aggiorno il puntatore al successivo del nodo precedente
-        sw s2 0(a3)              # puntatore al precedente  
-        
-        add s2 a3 zero           # aggiorno variabile che tiene la coda
-        
+        sb a2 0(a3)              # Salvo DATA
+        sw s1 1(a3)              # Salvo PAHEAD
+        sw a3 1(s2)              # Aggiorno PAHEAD del nodo precedente
+        add s2 a3 zero           # aggiorno il puntatore alla coda
+
         j check_next_instruction
 
 
 
 PRINT:
-    li t0 0xffffffff
-    add t1 s1 zero
+    add t1 s1 zero               # t1 = testa
     beq t1 zero check_next_instruction
     
-    la a0 squareL # print the square parenthesis
+    la a0 squareL                # Stampa "["
     li a7 4
     ecall
+    
     PRINT_loop:
-        beq t0 t1 new_line
+        beq t1 s2 new_line       # Controllo quando arrivo all'ultimo elemento
         
-        lb a0 4(t1)     # print the element
+        lb a0 0(t1)              # Stampa DATA
         li a7 11        
         ecall
-        
-        la a0 space     # print the comma
+        la a0 space              # Stampa una spazio
         li a7 4
         ecall
         
-        lw t1 5(t1)
+        lw t1 1(t1)              # Prossimo nodo
         j PRINT_loop
         new_line:
-            la a0 squareR    # print the square parenthesis
+            lb a0 0(t1)          # Stampa l'ultimo elemento
+            li a7 11        
+            ecall
+            la a0 squareR        # Stampa "]"
             li a7 4
             ecall
-            
             la a0 newline
             li a7 4
             ecall
@@ -319,6 +316,7 @@ PRINT:
 
 
 
+# TODO: se è presente più di un elemento uguale al parametro, vanno eliminati tutti
 DEL:
     li t0 0xffffffff
     add t1 s1 zero
@@ -391,7 +389,8 @@ REV:
         j check_next_instruction
 
 
-
+# TODO: controllare che i parametri di ordinamento combacino: A > a > 1 > *
+# TODO: è crescente? La procedura deve essere ricorsiva
 SORT:
     beq s1 zero check_next_instruction
     add t1 s1 zero
@@ -453,12 +452,20 @@ address_generator:
     add s0 a3 zero
     add t0 a3 zero
     
-    lw t1 0(t0)                   # controllo se la memoria è libera
-    bne t1 zero address_generator # byte 0-3 (PBACK)
-    lb t1 4(t0)
-    bne t1 zero address_generator # byte 4 (DATA)
-    lw t1 4(t0)
-    bne t1 zero address_generator # byte 5-8 (PAHEAD)
+    # controllo se la memoria è libera
+    
+    #lw t1 0(t0)                   
+    #bne t1 zero address_generator # byte 0-3 (PBACK)
+    #lb t1 4(t0)
+    #bne t1 zero address_generator # byte 4 (DATA)        # vecchio codice per linked list
+    #lw t1 4(t0)
+    #bne t1 zero address_generator # byte 5-8 (PAHEAD)
+    #jr ra
+    
+    lb t1 0(t0)    # byte 0 (DATA)
+    bne t1 zero address_generator
+    lw t1 1(t0)    # byte 1-4 (PAHEAD)
+    bne t1 zero address_generator
     jr ra
 
 
