@@ -317,27 +317,35 @@ PRINT:
 
 
 # TODO: se è presente più di un elemento uguale al parametro, vanno eliminati tutti
+
 DEL:
-    li t0 0xffffffff
-    add t1 s1 zero
-    beq t1 zero check_next_instruction    # controllo se c'è almeno un elemento nella lista
+    li t0 0xffffffff                      # t0 = null
+    add t1 s1 zero                        # t1 = Testa
+    beq t1 zero check_next_instruction    
     DEL_loop:
-        lb t2 4(t1)
-        beq a2 t2 delete_element
-        lw t1 5(t1)
+        lb t2 0(t1)                       # t2 = dato contenuto nel nodo attuale
+        beq a2 t2 delete_element          # a2 = dato in input da eliminare
+        lw t1 1(t1)                       # t1 = prossimo nodo
         beq t1 t0 check_next_instruction
         j DEL_loop
 
     delete_element:
-        lw t4 0(t1)
-        lw t5 5(t1)
-        beq t0 t4 del_first_element
-        beq t0 t5 del_last_element
-        sw t5 5(t4)
-        sw t4 0(t5)
-        sw zero 0(t1)
-        sb zero 4(t1)
-        sw zero 5(t1)
+        #lw t4 0(t1)                 # t4 = pback
+        #beq t0 t4 del_first_element # 
+        #lw t5 5(t1)                 # t5 = pahead 
+        #beq t0 t5 del_last_element
+        
+        lw t3 1(t1)        # salvo pahead in t3
+        
+        sb zero 0(t1)      # azzero data nel nodo
+        sw zero 1(t1)      # azzero puntatore nel nodo
+        
+                
+        #sw t5 5(t4)
+        #sw t4 0(t5)
+        #sw zero 0(t1)
+        #sb zero 4(t1)
+        #sw zero 5(t1)
         j PARSING
 
     del_first_element:
@@ -357,7 +365,7 @@ DEL:
         add s1 zero zero
         j check_next_instruction
 
-    del_last_element:
+    del_last_element:        # TODO in teoria va tolto, l'ultimo elemento si comporta come un elemento nel mezzo
         sw t0 5(t4)
         sw zero 0(t1)
         sb zero 4(t1)
