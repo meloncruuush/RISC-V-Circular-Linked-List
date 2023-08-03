@@ -3,7 +3,7 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-listInput: .string "ADD(3)~ADD(5)~PRINT~DEL(3)~PRINT"
+listInput: .string "ADD(3)~ADD(5)~ADD(4)~ADD(7)~ADD(3)~PRINT~SORT~PRINT~DEL(3)~DEL(3)~PRINT~ADD(1)~ADD(3)~PRINT~REV~PRINT"
 lfsr:      .word 612178        # seme iniziale, ho scritto un numero a caso
 
 newline:   .string "\n"
@@ -22,11 +22,11 @@ la s4 listInput
 add a1 s4 zero    # Mette il primo carattere in a1
 
 main:
-    j DECODING
+    j PARSING
 
 
 
-DECODING:
+PARSING:
     check_initial_spaces:
         lb t1 0(a1)             # carattere ora in t1
         li t2 32                # 32 è 'spazio' in ASCII
@@ -239,7 +239,7 @@ DECODING:
 
 
     check_next_instruction:
-            lb t1 0(a1)                 # ciclo che continua finchè non trova ~ e prosegue il decoding, o null e chiude il programma
+            lb t1 0(a1)                 # ciclo che continua finchè non trova ~ e prosegue il parsing, o null e chiude il programma
             
             li t2 0                     # null                        
             beq t1 t2 exit
@@ -253,7 +253,7 @@ DECODING:
             
     next_instruction:
         addi a1, a1, 1
-        j DECODING
+        j PARSING
 
 
         
@@ -264,7 +264,7 @@ ADD:
     bne s1 zero not_first_ADD    
     
     add s1 a3 zero               # credo che in a3 ci sia l'indirizzo del nodo testa, lo metto in s1
-    li t0 0xffffffff             # carico la dimensione della linked list in t1 
+    li t0 0xffffffff             # 0xffffffff significa null TODO il puntatore deve puntare all'elemento stesso. Lista circolare.
     sw t0 0(a3)                  # puntatore precedente
     sw t0 5(a3)                  # puntatore successivo
     sb a2 4(a3)                  # contenuto del nodo
@@ -340,7 +340,7 @@ DEL:
         sw zero 0(t1)
         sb zero 4(t1)
         sw zero 5(t1)
-        j DECODING
+        j PARSING
 
     del_first_element:
         beq t0 t5 del_only_element
@@ -350,7 +350,7 @@ DEL:
         sb zero 4(t1)
         sw zero 5(t1)
         add s1 t5 zero
-        j DECODING 
+        j PARSING 
 
     del_only_element:
         sw zero 0(t1)
@@ -371,12 +371,52 @@ DEL:
 
 
 REV:
-    j check_next_instruction
+    li t0 0xffffffff
+    beq s1 zero check_next_instruction
+    add t1 s1 zero
+    REV_loop:
+        lw t4 0(t1)
+        lw t5 5(t1)
+        add t3 t5 zero 
+        sw t4 5(t1)
+        sw t5 0(t1)
+        beq t1 t0 head_rear_swap
+        add t1 t3 zero
+        j REV_loop
+        
+    head_rear_swap:
+        add t2 s2 zero
+        add s2 s1 zero
+        add s1 t2 zero
+        j check_next_instruction
 
 
 
 SORT:
-    j check_next_instruction
+    beq s1 zero check_next_instruction
+    add t1 s1 zero
+    li t0 0
+
+    SORT_loop:
+        lb a4 4(t1)
+        lw t3 5(t1)
+        lb a5 4(t3)
+        li t5 0xffffffff
+        beq t3 t5 check_swapped
+        jal swap_check
+        bne a2 zero swap_element
+        add t1 t3 zero
+        j SORT_loop
+
+    swap_element:
+        sb a4 4(t3)
+        sb a5 4(t1)
+        li t0 1
+        add t1 t3 zero
+        j SORT_loop
+    check_swapped:
+        beq t0 zero check_next_instruction
+        j SORT
 
 
 
@@ -420,6 +460,71 @@ address_generator:
     lw t1 4(t0)
     bne t1 zero address_generator # byte 5-8 (PAHEAD)
     jr ra
+
+
+
+swap_check:
+    check_first:
+        li t2 65
+        blt a4 t2 check_number_first
+        li t2 90
+        bgt a4 t2 check_minuscola_first
+        li t4 4
+        j check_second
+
+    check_minuscola_first:
+        li t2 97
+        blt a4 t2 set_special_char_first
+        li t2 122
+        bgt a4 t2 set_special_char_first
+        li t4 3
+        j check_second
+
+    check_number_first:
+        li t2 48
+        blt a4 t2 set_special_char_first
+        li t2 57
+        bgt a4 t2 set_special_char_first
+         li t4 2
+        j check_second
+    set_special_char_first:
+        li t4 1
+
+    check_second:
+        li t2 65
+        blt a5 t2 check_number_second
+        li t2 90
+        bgt a5 t2 check_minuscola_second
+        li t6 4
+        j check_priority
+    check_minuscola_second:
+        li t2 97
+        blt a5 t2 set_special_char_second
+        li t2 122
+        bgt a5 t2 set_special_char_second
+        li t6 3
+        j check_priority
+    check_number_second:
+        li t2 48
+        blt a5 t2 set_special_char_second
+        li t2 57
+        bgt a5 t2 set_special_char_second
+        li t6 2
+        j check_priority
+    set_special_char_second:
+        li t6 1
+    check_priority:
+        li a2 0
+        bgt t4 t6 set_swapper
+        beq t4 t6 check_elements
+        jr ra
+
+    check_elements:
+        bgt a4 a5 set_swapper
+        jr ra
+    set_swapper:
+        li a2 1
+        jr ra
 
 
 
