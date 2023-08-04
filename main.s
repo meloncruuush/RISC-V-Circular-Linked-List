@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(a)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -344,7 +344,7 @@ DEL:
         lw t3 1(t1)                    # t3 = puntatore della testa
         beq t3 t1 del_only_element     # Se punta a se stesso, c'? solo la testa
         
-        sw t3 1(t4)                    # salvo il pahead nel nodo precedente
+        add t4 t3 zero                    # salvo il pahead nel nodo precedente
         sb zero 0(t1)                  # Imposto il valore a 0
         sw zero 1(t1)                  # Imposto il puntatore a 0
         add s1 t3 zero                 # La testa globale ora punta a quello che era il secondo elemento
@@ -359,7 +359,7 @@ DEL:
     
     delete_tail:
         lw t3 1(t1)        # t3 = puntatore alla testa
-        sw t3 1(t4)        # precedente ora punta a testa
+        add t4 t3 zero        # precedente ora punta a testa
         sb zero 0(t1)      # azzero data nel nodo
         sw zero 1(t1)      # azzero puntatore nel nodo
         add s2 t3 zero     # aggiorno coda
