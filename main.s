@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(a)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -34,8 +34,6 @@ PARSING:
         bne t1 t2 check_add     # se non ? uno spazio, jump
         addi a1 a1 1            # carattere successivo
         j check_initial_spaces
-
-
 
     check_add:
         lb t1 0(a1)
@@ -73,8 +71,6 @@ PARSING:
         
         j ADD
 
-
-
     check_print:
         lb t1 0(a1)
         li t2 80
@@ -103,8 +99,6 @@ PARSING:
         jal x1, check_spaces
         
         j PRINT
-
-
 
     check_del:
         lb t1 0(a1)
@@ -142,8 +136,6 @@ PARSING:
         
         j DEL
 
-
-
     check_rev:
         lb t1 0(a1)
         li t2 82
@@ -162,8 +154,6 @@ PARSING:
         jal x1, check_spaces
         
         j REV
-
-
 
     check_s:
         lb t1 0(a1)
@@ -185,9 +175,6 @@ PARSING:
         beq t1 t2 check_ssx               # controllo se ? S di ssx
         
         j check_next_instruction
-        
-        
-        
 
     check_sort:
         addi a1 a1 1
@@ -204,8 +191,6 @@ PARSING:
         
         j SORT
 
-
-
     check_sdx:
         addi a1 a1 1
         lb t1 0(a1)
@@ -215,8 +200,6 @@ PARSING:
         jal x1, check_spaces
         
         j SDX   
-
-
 
     check_ssx:
         addi a1 a1 1
@@ -228,16 +211,12 @@ PARSING:
         
         j SSX   
 
-
-
     check_spaces:          
             addi a1 a1 1
             lb t1 0(a1)
             li t2 32
             beq t1 t2 check_spaces
             jalr x0, x1, 0
-
-
 
     check_next_instruction:
             lb t1 0(a1)                 # ciclo che continua finch? non trova ~ e prosegue il parsing, o null e chiude il programma
@@ -266,9 +245,10 @@ ADD:
     bne s1 zero not_first_ADD    
     
     add s1 a3 zero               # Aggiorno il puntatore alla testa
-    sb a2 0(a3)                  # Salvo DATA
-    sw s1 1(a3)                  # Salvo PAHEAD 
     add s2 a3 zero               # Aggiorno il puntatore alla coda
+    lw t0 1(a3)
+    sb a2 0(a3)                  # Salvo DATA
+    sw t0 1(a3)                  # Salvo PAHEAD (che punta su se stesso)
     
     j check_next_instruction
     
@@ -279,7 +259,6 @@ ADD:
         add s2 a3 zero           # aggiorno il puntatore alla coda
 
         j check_next_instruction
-
 
 
 PRINT:
@@ -315,17 +294,16 @@ PRINT:
             j check_next_instruction
 
 
-
 DEL:
-    add t1 s1 zero                        # t1 = Testa
-    beq t1 zero check_next_instruction    # Se testa ? vuota, prossima istruzione
-    add t4 t1 zero                        # precedente
+    add t1 s1 zero                            # t1 = Testa
+    beq t1 zero check_next_instruction        # Se testa ? vuota, prossima istruzione
+    add t4 t1 zero                            # precedente
     DEL_loop: 
-        lb t2 0(t1)                       # t2 = nodo.valore
-        beq a2 t2 delete_element          # if t2 == a2 elimina nodo
-        add t4 t1 zero                    # t4 = nodo precedente
-        lw t1 1(t1)                       # t1 = prossimo nodo
-        beq t1 s2 check_next_instruction  # se nodo = testa, il cerchio ? concluso
+        lb t2 0(t1)                           # t2 = nodo.valore
+        beq a2 t2 delete_element              # if t2 == a2 elimina nodo
+        add t4 t1 zero                        # t4 = nodo precedente
+        lw t1 1(t1)                           # t1 = prossimo nodo
+        beq t1 s1 check_next_instruction      # se nodo = testa, il cerchio ? concluso
         j DEL_loop
     
     delete_element:
