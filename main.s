@@ -6,8 +6,8 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-# listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
-listInput: .string "ADD(1)~PRINT~DEL(1)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
+
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -315,7 +315,7 @@ DEL:
     delete_element:
         lw t3 1(t0)                 # PAHEAD
         beq t0 s1 del_first_element # Se il nodo attuale è uguale alla testa globale, siamo nel primo elemento
-        #beq t0 t5 del_last_element  # Se PAHEAD punta a null, allora sto esaminando l'ultimo elemento
+        beq t0 s2 del_last_element  # Se il nodo attuale è uguale alla coda globale, allora sto esaminando l'ultimo elemento
         sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
         sb zero 0(t0)               # Azzero il dato
         sw zero 1(t0)               # Azzero PAHEAD
@@ -328,7 +328,7 @@ DEL:
         sw t3 1(t1)       # Salvo PAHEAD nel precedente
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
-        add s1 t3 zero    # Aggiorno testa global
+        add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
         j check_next_instruction
 
     del_only_element:
@@ -338,11 +338,10 @@ DEL:
         j check_next_instruction
 
     del_last_element:
-        sw t0 5(t4)
-        sw zero 0(t1)
-        sb zero 4(t1)
-        sw zero 5(t1)
-        add s2 t4 zero
+        sw t3 1(t1)       # Salvo PAHEAD nel precedente
+        sb zero 0(t0)     # Azzero DATA
+        sw zero 1(t0)     # Azzero PAHEAD
+        add s2 t1 zero    # Aggiorno coda global (la nuova coda è il precedente)
         j check_next_instruction
 
 
