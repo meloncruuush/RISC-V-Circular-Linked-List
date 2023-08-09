@@ -356,24 +356,39 @@ DEL:
 
 
 REV:
-    li t0 0xffffffff
-    beq s1 zero check_next_instruction
-    add t1 s1 zero
-    REV_loop:
-        lw t4 0(t1)
-        lw t5 5(t1)
-        add t3 t5 zero 
-        sw t4 5(t1)
-        sw t5 0(t1)
-        beq t1 t0 head_rear_swap
-        add t1 t3 zero
-        j REV_loop
+    add t0 s1 zero     # carico il nodo attuale (testa)
+    # ora attraverso tutta la lista, fino all'alemento n-1, e prendo il valore del nodo
+    addi t4 zero 0     # inizializzo il contatoreL a 0
+    addi t5 s3 -1      # inizializzo il contatoreR a n-1 
+    valore_a_destra:
         
-    head_rear_swap:
-        add t2 s2 zero
-        add s2 s1 zero
-        add s1 t2 zero
-        j check_next_instruction
+    
+    add t1 zero zero
+    
+    rev_swap:
+        lb t2 0(t0) 
+        lb t3 0(t1)
+        sb t3 0(t0)
+        sb t2 0(t1)
+    
+    #li t0 0xffffffff
+    #beq s1 zero check_next_instruction
+    #add t1 s1 zero
+    #REV_loop:
+    #    lw t4 0(t1)
+    #    lw t5 5(t1)
+    #    add t3 t5 zero 
+    #    sw t4 5(t1)
+    #    sw t5 0(t1)
+    #    beq t1 t0 head_rear_swap
+    #    add t1 t3 zero
+    #    j REV_loop
+    #    
+    #head_rear_swap:
+    #    add t2 s2 zero
+    #    add s2 s1 zero
+    #    add s1 t2 zero
+    #    j check_next_instruction
 
 
 # TODO: controllare che i parametri di ordinamento combacino: A > a > 1 > *
