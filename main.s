@@ -6,7 +6,8 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
+# listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
+listInput: .string "ADD(1)~PRINT~DEL(1)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -323,7 +324,7 @@ DEL:
         j check_next_instruction    # Passo all'istruzione successiva
 
     del_first_element:
-        #beq t0 t5 del_only_element
+        beq t0 t3 del_only_element    # Se sta puntando a se stesso, è l'unico elemento
         sw t3 1(t1)       # Salvo PAHEAD nel precedente
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
@@ -331,10 +332,9 @@ DEL:
         j check_next_instruction
 
     del_only_element:
-        sw zero 0(t1)
-        sb zero 4(t1)
-        sw zero 5(t1)
-        add s1 zero zero
+        sb zero 0(t0)    # Azzero DATA
+        sw zero 1(t0)    # Azzero PAHEAD
+        add s1 zero zero # Azzero S1, non ci sono più elementi nella lista
         j check_next_instruction
 
     del_last_element:
