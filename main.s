@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~PINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~ADD(2)~PRINT~DEL(7)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -21,6 +21,7 @@ squareR:   .string "]"
 lw s0 lfsr        # Seme del generatore di indirizzi
 li s1 0           # Puntatore alla testa
 li s2 0           # Indirizzo della coda
+li s3 0           # Contatore numero elementi della lista
 la s4 listInput   
 
 add a1 s4 zero    # Mette il primo carattere in a1
@@ -250,6 +251,7 @@ ADD:
     sb a2 0(a3)                  # Salvo DATA
     sw t0 1(a3)                  # Salvo PAHEAD (che punta su se stesso)
     
+    addi s3 s3 1                 # Incrementa il puntatore di 1
     j check_next_instruction
     
     not_first_ADD:
@@ -258,6 +260,7 @@ ADD:
         sw a3 1(s2)              # Aggiorno PAHEAD del nodo precedente
         add s2 a3 zero           # aggiorno il puntatore alla coda
 
+        addi s3 s3 1                 # Incrementa il puntatore di 1
         j check_next_instruction
 
 
@@ -294,53 +297,53 @@ PRINT:
             j check_next_instruction
 
 
-DEL: # TODO not working, fix it!!! I suggest starting again, just delete all this code and paste the original one 
-    add t1 s1 zero                            # t1 = Testa
-    beq t1 zero check_next_instruction        # Se testa ? vuota, prossima istruzione
-    add t4 t1 zero                            # precedente
-    DEL_loop: 
-        lb t2 0(t1)                           # t2 = nodo.valore
-        beq a2 t2 delete_element              # if t2 == a2 elimina nodo
-        add t4 t1 zero                        # t4 = nodo precedente
-        lw t1 1(t1)                           # t1 = prossimo nodo
-        beq t1 s1 check_next_instruction      # se nodo = testa, il cerchio ? concluso
+DEL: 
+    add t0 s1 zero                  # Nodo attuale
+    beq t1 zero check_next_instruction
+    add t1 s2 zero                  # nodo precedente
+    addi t4 zero 0                    # Contatore ciclo
+    DEL_loop:
+        lb t2 0(t0)                 # carico il valore del nodo
+        beq a2 t2 delete_element
+        lw t0 1(t0)
+        addi t4 t4 1                # incremento il contatore
+        beq t4 s3 check_next_instruction
         j DEL_loop
-    
+
     delete_element:
-        beq t1 s1 delete_head            # controllo se ? la testa
-        beq t1 s2 delete_tail            # controllo se ? l'ultimo elemento
-                
-        lw t3 1(t1)        # t3 = puntatore
-        sw t3 1(t4)        # salvo il pahead nel nodo precedente
-        sb zero 0(t1)      # azzero data nel nodo
-        sw zero 1(t1)      # azzero puntatore nel nodo
-                           # precedente non viene aggiornato, poich? rimane lo stesso
-        lw t1 1(t4)    
-        j DEL_loop
-    
-    delete_head:
-        lw t3 1(t1)                    # t3 = puntatore della testa
-        beq t3 t1 del_only_element     # Se punta a se stesso, c'? solo la testa
-        
-        add t4 t3 zero                    # salvo il pahead nel nodo precedente
-        sb zero 0(t1)                  # Imposto il valore a 0
-        sw zero 1(t1)                  # Imposto il puntatore a 0
-        add s1 t3 zero                 # La testa globale ora punta a quello che era il secondo elemento
-        add t1 t3 zero                 # Imposto t1 al prossimo valore per continuare il ciclo
-        j DEL_loop 
+        lw t3 1(t0)                 # PAHEAD
+        #beq t0 t4 del_first_element # Se PBACK punta a null, allora sto esaminando il primo elemento
+        #beq t0 t5 del_last_element  # Se PAHEAD punta a null, allora sto esaminando l'ultimo elemento
+        sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
+        sb zero 0(t0)               # Azzero il dato
+        sw zero 1(t0)               # Azzero PAHEAD
+        addi s3 s3 -1               # Decremento il contatore globale
+        addi t4 t4 1                # Incremento il contatore del ciclo
+        j check_next_instruction    # Passo all'istruzione successiva
+
+    del_first_element:
+        beq t0 t5 del_only_element
+        sw t0 0(t5)
+
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s1 t5 zero
+        j check_next_instruction
 
     del_only_element:
-        sb zero 0(t1)                  # Valore a 0        
-        sw zero 1(t1)                  # Puntatore a 0
-        add s1 zero zero               # Testa globale a 0
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s1 zero zero
         j check_next_instruction
-    
-    delete_tail:
-        lw t3 1(t1)        # t3 = puntatore alla testa
-        add t4 t3 zero        # precedente ora punta a testa
-        sb zero 0(t1)      # azzero data nel nodo
-        sw zero 1(t1)      # azzero puntatore nel nodo
-        add s2 t3 zero     # aggiorno coda
+
+    del_last_element:
+        sw t0 5(t4)
+        sw zero 0(t1)
+        sb zero 4(t1)
+        sw zero 5(t1)
+        add s2 t4 zero
         j check_next_instruction
 
 
