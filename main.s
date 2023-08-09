@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~ADD(2)~PRINT~DEL(7)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(*)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -299,13 +299,14 @@ PRINT:
 
 DEL: 
     add t0 s1 zero                  # Nodo attuale
-    beq t1 zero check_next_instruction
+    beq t0 zero check_next_instruction
     add t1 s2 zero                  # nodo precedente
     addi t4 zero 0                    # Contatore ciclo
     DEL_loop:
         lb t2 0(t0)                 # carico il valore del nodo
         beq a2 t2 delete_element
-        lw t0 1(t0)
+        lw t0 1(t0)                 # passo al nodo successivo
+        lw t1 1(t1)                 # aggiorno anche il precedente        
         addi t4 t4 1                # incremento il contatore
         beq t4 s3 check_next_instruction
         j DEL_loop
