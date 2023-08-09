@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(*)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -313,7 +313,7 @@ DEL:
 
     delete_element:
         lw t3 1(t0)                 # PAHEAD
-        #beq t0 t4 del_first_element # Se PBACK punta a null, allora sto esaminando il primo elemento
+        beq t0 s1 del_first_element # Se il nodo attuale è uguale alla testa globale, siamo nel primo elemento
         #beq t0 t5 del_last_element  # Se PAHEAD punta a null, allora sto esaminando l'ultimo elemento
         sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
         sb zero 0(t0)               # Azzero il dato
@@ -323,13 +323,11 @@ DEL:
         j check_next_instruction    # Passo all'istruzione successiva
 
     del_first_element:
-        beq t0 t5 del_only_element
-        sw t0 0(t5)
-
-        sw zero 0(t1)
-        sb zero 4(t1)
-        sw zero 5(t1)
-        add s1 t5 zero
+        #beq t0 t5 del_only_element
+        sw t3 1(t1)       # Salvo PAHEAD nel precedente
+        sb zero 0(t0)     # Azzero DATA
+        sw zero 1(t0)     # Azzero PAHEAD
+        add s1 t3 zero    # Aggiorno testa global
         j check_next_instruction
 
     del_only_element:
