@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(1)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~PINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -294,7 +294,7 @@ PRINT:
             j check_next_instruction
 
 
-DEL:
+DEL: # TODO not working, fix it!!! I suggest starting again, just delete all this code and paste the original one 
     add t1 s1 zero                            # t1 = Testa
     beq t1 zero check_next_instruction        # Se testa ? vuota, prossima istruzione
     add t4 t1 zero                            # precedente
