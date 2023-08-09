@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(2)~PRINT~ADD(4)~PRINT~DEL(4)~PRINT"
+listInput: .string "ADD(A)~ADD(A)~ADD(*)~ADD(A)~ADD(A)~PRINT~DEL(A)~PRINT"
 
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
@@ -320,6 +320,7 @@ DEL:
         sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
         sb zero 0(t0)               # Azzero il dato
         sw zero 1(t0)               # Azzero PAHEAD
+        lw t0 1(t1)                 # 
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
         j DEL_loop    # Passo all'istruzione successiva
@@ -329,6 +330,7 @@ DEL:
         sw t3 1(t1)       # Salvo PAHEAD nel precedente
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
+        lw t0 1(t1)
         add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
