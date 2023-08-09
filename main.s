@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(7)~PRINT~ADD(4)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(2)~PRINT~ADD(4)~PRINT~DEL(4)~PRINT"
 
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
@@ -322,7 +322,7 @@ DEL:
         sw zero 1(t0)               # Azzero PAHEAD
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
-        j check_next_instruction    # Passo all'istruzione successiva
+        j DEL_loop    # Passo all'istruzione successiva
 
     del_first_element:
         beq t0 t3 del_only_element    # Se sta puntando a se stesso, è l'unico elemento
@@ -332,7 +332,7 @@ DEL:
         add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
-        j check_next_instruction
+        j DEL_loop
 
     del_only_element:
         sb zero 0(t0)    # Azzero DATA
