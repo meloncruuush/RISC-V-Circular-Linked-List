@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(2)~PRINT~ADD(4)~PRINT"
+listInput: .string "ADD(1)~ADD(A)~ADD(*)~ADD(a)~ADD(2)~PRINT~DEL(7)~PRINT~ADD(4)~PRINT"
 
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
@@ -302,14 +302,15 @@ DEL:
     add t0 s1 zero                  # Nodo attuale
     beq t0 zero check_next_instruction
     add t1 s2 zero                  # nodo precedente
-    addi t4 zero 0                    # Contatore ciclo
+    addi t4 zero 0                  # Contatore ciclo (i = 0)
+    addi t5 s3 0                    # (i < list.size)
     DEL_loop:
         lb t2 0(t0)                 # carico il valore del nodo
         beq a2 t2 delete_element
         lw t0 1(t0)                 # passo al nodo successivo
         lw t1 1(t1)                 # aggiorno anche il precedente        
         addi t4 t4 1                # incremento il contatore
-        beq t4 s3 check_next_instruction
+        beq t4 t5 check_next_instruction
         j DEL_loop
 
     delete_element:
@@ -329,12 +330,16 @@ DEL:
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
         add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
+        addi s3 s3 -1               # Decremento il contatore globale
+        addi t4 t4 1                # Incremento il contatore del ciclo
         j check_next_instruction
 
     del_only_element:
         sb zero 0(t0)    # Azzero DATA
         sw zero 1(t0)    # Azzero PAHEAD
         add s1 zero zero # Azzero S1, non ci sono più elementi nella lista
+        addi s3 s3 -1               # Decremento il contatore globale
+        addi t4 t4 1                # Incremento il contatore del ciclo
         j check_next_instruction
 
     del_last_element:
@@ -342,6 +347,8 @@ DEL:
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
         add s2 t1 zero    # Aggiorno coda global (la nuova coda è il precedente)
+        addi s3 s3 -1               # Decremento il contatore globale
+        addi t4 t4 1                # Incremento il contatore del ciclo
         j check_next_instruction
 
 
