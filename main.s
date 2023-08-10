@@ -355,41 +355,32 @@ DEL:
 
 
 
-REV:
-    add t0 s1 zero     # carico il nodo attuale (testa)
-    # ora attraverso tutta la lista, fino all'alemento n-1, e prendo il valore del nodo
-    addi t4 zero 0     # inizializzo il contatoreL a 0
-    addi t5 s3 -1      # inizializzo il contatoreR a n-1 
-    valore_a_destra:
+REV:    
+    add t0 s1 zero        # NodoL
+    beq t0 zero check_next_instruction
+    addi t1 zero 0        # IndexL
+    addi t4 s3 -1         # IndexR
+    REV_cycle:
+        bge t1 t4 check_next_instruction     # if indiceL >= indice
         
-    
-    add t1 zero zero
-    
-    rev_swap:
-        lb t2 0(t0) 
-        lb t3 0(t1)
-        sb t3 0(t0)
-        sb t2 0(t1)
-    
-    #li t0 0xffffffff
-    #beq s1 zero check_next_instruction
-    #add t1 s1 zero
-    #REV_loop:
-    #    lw t4 0(t1)
-    #    lw t5 5(t1)
-    #    add t3 t5 zero 
-    #    sw t4 5(t1)
-    #    sw t5 0(t1)
-    #    beq t1 t0 head_rear_swap
-    #    add t1 t3 zero
-    #    j REV_loop
-    #    
-    #head_rear_swap:
-    #    add t2 s2 zero
-    #    add s2 s1 zero
-    #    add s1 t2 zero
-    #    j check_next_instruction
-
+        add t3 s1 zero # NodoR
+        addi t6 zero 0 
+        get_nodeR:
+            lw t3 1(t3)     # prossimo nodo
+            addi t6 t6 1    # incremento il contatore
+            bne t6 t1 get_nodeR
+               
+        # swap dei valori
+        lb t2 0(t0) # t2 = NodoL.value 
+        lb t5 0(t3) # t5 = NodoR.value
+        sb t5 0(t0) 
+        sb t2 0(t3)
+        
+        lw t0 1(t0)     # NodoL.next
+        addi t1 t1 1    # IndexL++
+        addi t3 t3 -1   # IndexR-- 
+        
+        
 
 # TODO: controllare che i parametri di ordinamento combacino: A > a > 1 > *
 # TODO: ? crescente? La procedura deve essere ricorsiva

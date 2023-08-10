@@ -1,0 +1,24 @@
+
+
+
+nodoL = lista.testa
+indiceL = 0
+indiceR = lista.lenght-1
+
+ciclo?:
+    if indiceL >= indiceR:
+        exit
+    
+    nodoR = lista.testa
+    for (i = 0; i <= indiceR; i ++)
+        nodoR.next 
+        indiceR++    
+
+    valueR = nodoR.value 
+    valueL = nodoL.value 
+    nodoR.value = valueL  
+    nodoL.value = valueR
+
+    nodoL = nodoL.next 
+    indiceL++ 
+    indiceR--
