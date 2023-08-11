@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(A)~ADD(B)~ADD(C)~ADD(D)~ADD(E)~PRINT~SDX~PRINT"
+listInput: .string "ADD(A)~PRINT~SSX~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -435,8 +435,16 @@ SDX:
     
 
 SSX:
+    add t0 s1 zero    # testa
+    beq t0 zero check_next_instruction # empty
+    beq s1 s2 check_next_instruction   # only one element
+    add t1 s2 zero    # coda
+    lw t2 1(t0)       # secondo nodo 
+    
+    add s1 t2 zero    # ora la testa è il secondo nodo
+    add s2 t0 zero    # ora la coda è il primo nodo
+    
     j check_next_instruction
-
 
 
 address_generator:
