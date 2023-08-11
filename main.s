@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(A)~ADD(A)~ADD(*)~ADD(A)~ADD(A)~PRINT~DEL(A)~PRINT"
+listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(e)~ADD(f)~ADD(g)~ADD(h)~PRINT~REV~PRINT"
 
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
@@ -368,7 +368,7 @@ REV:
         get_nodeR:
             lw t3 1(t3)     # prossimo nodo
             addi t6 t6 1    # incremento il contatore
-            bne t6 t1 get_nodeR
+            bne t6 t4 get_nodeR
                
         # swap dei valori
         lb t2 0(t0) # t2 = NodoL.value 
@@ -378,7 +378,8 @@ REV:
         
         lw t0 1(t0)     # NodoL.next
         addi t1 t1 1    # IndexL++
-        addi t3 t3 -1   # IndexR-- 
+        addi t4 t4 -1   # IndexR-- 
+        j REV_cycle
         
         
 
@@ -413,7 +414,32 @@ SORT:
 
 
 SDX:
-    j check_next_instruction
+    add t0 s1 zero        # NodoL
+    beq t0 zero check_next_instruction
+    addi t1 zero 0        # IndexL
+    addi t4 s3 -1         # IndexR
+    SDX_cycle:
+        bge t1 t4 check_next_instruction     # if indiceL >= indice
+        
+        add t3 s1 zero # NodoR
+        addi t6 zero 0 
+        get_nodeR_sdx:
+            lw t3 1(t3)     # prossimo nodo
+            addi t6 t6 1    # incremento il contatore
+            bne t6 t4 get_nodeR_sdx
+               
+        # swap dei valori
+        lb t2 0(t0) # t2 = NodoL.value 
+        lb t5 0(t3) # t5 = NodoR.value
+        sb t5 0(t0) 
+        sb t2 0(t3)
+        
+        lw t0 1(t0)     # NodoL.next
+        addi t1 t1 1    # IndexL++
+        addi t3 t3 -1   # IndexR-- 
+        j SDX_cycle
+    
+    
 
 
 
