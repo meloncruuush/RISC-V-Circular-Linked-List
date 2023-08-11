@@ -6,7 +6,7 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-listInput: .string "ADD(A)~PRINT~SSX~PRINT"
+listInput: .string "ADD(A)~ADD(D)~ADD(E)~ADD(B)~ADD(C)~PRINT~SORT~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -382,32 +382,29 @@ REV:
         
         
 
-# TODO: controllare che i parametri di ordinamento combacino: A > a > 1 > *
-# TODO: ? crescente? La procedura deve essere ricorsiva
 SORT:
     beq s1 zero check_next_instruction
-    add t1 s1 zero
-    li t0 0
+    add t1 s1 zero # puntatore alla testa
+    li t0 0        # flag = 0 (0=nessuno scambio fatto nel ciclo, 1=scambio fatto nel ciclo)
 
     SORT_loop:
-        lb a4 4(t1)
-        lw t3 5(t1)
-        lb a5 4(t3)
-        li t5 0xffffffff
-        beq t3 t5 check_swapped
-        jal swap_check
+        lb a4 0(t1)    # primo elemento da confrontare
+        lw t3 1(t1)    # puntatore al successivo
+        lb a5 0(t3)    # secondo elemento da confrontare
+        beq t3 s1 check_swapped # se il successivo è la testa, siamo al primo elemento
+        jal swap_check 
         bne a2 zero swap_element
         add t1 t3 zero
         j SORT_loop
 
     swap_element:
-        sb a4 4(t3)
-        sb a5 4(t1)
+        sb a4 0(t3)
+        sb a5 0(t1)
         li t0 1
-        add t1 t3 zero
+        add t1 t3 zero # passa al nodo successivo
         j SORT_loop
     check_swapped:
-        beq t0 zero check_next_instruction
+        beq t0 zero check_next_instruction # se non sono stati effettuati scambi, concludi
         j SORT
 
 
