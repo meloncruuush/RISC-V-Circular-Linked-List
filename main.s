@@ -3,11 +3,11 @@
 # per relazione, parlare della formattazione del codice
 
 .data
-# listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
-listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
+listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
+# listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
 # listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~DEL(A)~PRINT"
-# listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(x)~PRINT~DEL(a)~PRINT~ADD(e)~PRINT~SDX~PRINT"
+# listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(e)~PRINT~DEL(b)~PRINT~DEL(d)~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -68,7 +68,8 @@ PARSING:
         bne t1 t2 check_next_instruction # parantesiR
         
         jal check_spaces
-        j ADD
+        jal ADD
+        j check_next_instruction
 
     check_print:
         lb t1 0(a1)
@@ -96,7 +97,8 @@ PARSING:
         bne t1 t2 check_next_instruction # T
         
         jal check_spaces
-        j PRINT
+        jal PRINT
+        j check_next_instruction
 
     check_del:
         lb t1 0(a1)
@@ -131,7 +133,8 @@ PARSING:
         bne t1 t2 check_next_instruction # parentesiR
         
         jal check_spaces
-        j DEL
+        jal DEL
+        j check_next_instruction
 
     check_rev:
         lb t1 0(a1)
@@ -149,7 +152,8 @@ PARSING:
         bne t1 t2 check_next_instruction            # R
      
         jal check_spaces
-        j REV
+        jal REV
+        j check_next_instruction
 
     check_s:
         lb t1 0(a1)
@@ -184,7 +188,8 @@ PARSING:
         bne t1 t2 check_next_instruction # controllo se ? T
         
         jal check_spaces
-        j SORT
+        jal SORT
+        j check_next_instruction
 
     check_sdx:
         addi a1 a1 1
@@ -193,7 +198,8 @@ PARSING:
         bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
  
         jal check_spaces
-        j SDX   
+        jal SDX   
+        j check_next_instruction
 
     check_ssx:
         addi a1 a1 1
@@ -202,7 +208,8 @@ PARSING:
         bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
  
         jal check_spaces
-        j SSX   
+        jal SSX   
+        j check_next_instruction
 
     check_spaces:          
             addi a1 a1 1
@@ -232,29 +239,38 @@ PARSING:
 # OPERAZIONI    
 
 ADD:
+    addi sp, sp -8 # creo spazio nella stack
+    sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
     jal address_generator        # genero l'indirizzo in cui salvare il nodo. Indirizzo in a3
+    lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+    addi sp sp 8   # restore dello stack
+    
     bne s1 zero not_first_ADD    
     add s1 a3 zero               # Aggiorno il puntatore alla testa
     sb a2 0(a3)                  # Salvo DATA
     sw s1 1(a3)                  # Salvo PAHEAD (che punta su se stesso)
     addi s3 s3 1                 # Incrementa il puntatore di 1
-    j check_next_instruction
+    jr ra
     
     not_first_ADD:
         sb a2 0(a3)              # Salvo DATA
         sw s1 1(a3)              # Salvo PAHEAD (ultimo nodo punta sempre alla testa)       
-
+        
+        addi sp, sp -8 # creo spazio nella stack
+        sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
         jal get_last_node
+        lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+        addi sp sp 8   # restore dello stack
         add t2 a0 zero    # Nodo precedente
 
         sw a3 1(t2)              # Aggiorno PAHEAD del nodo precedente
         addi s3 s3 1                 # Incrementa il contatore di 1
-        j check_next_instruction
+        jr ra
 
 
 PRINT:
     add t1 s1 zero               # t1 = testa
-    beq t1 zero check_next_instruction
+    beq t1 zero end_print
     
     la a0 squareL                # Stampa "["
     li a7 4
@@ -281,14 +297,21 @@ PRINT:
             la a0 newline
             li a7 4
             ecall
-            j check_next_instruction
+            j end_print
+        
+        end_print:
+            jr ra
             
 
 DEL: 
+    addi sp, sp -8 # creo spazio nella stack
+    sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
     jal get_last_node
+    lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+    addi sp sp 8   # restore dello stack
     add t1 a0 zero    # Nodo precedente
     add t0 s1 zero    # Nodo attuale
-    beq t0 zero check_next_instruction
+    beq t0 zero end_del
 
     addi t4 zero 0                  # Contatore ciclo (i = 0)
     addi t5 s3 0                    # (i < list.size)
@@ -298,7 +321,7 @@ DEL:
         lw t0 1(t0)                 # passo al nodo successivo
         lw t1 1(t1)                 # aggiorno anche il precedente        
         addi t4 t4 1                # incremento il contatore
-        bge t4 t5 check_next_instruction
+        bge t4 t5 end_del
         j DEL_loop
 
     delete_element:
@@ -331,16 +354,19 @@ DEL:
         add s1 zero zero # Azzero S1, non ci sono pi? elementi nella lista
         addi s3 s3 -1               # Decremento il contatore globale
         # addi t4 t4 1                # Incremento il contatore del ciclo
-        j check_next_instruction
+        j end_del
+        
+    end_del:
+        jr ra
 
 
 REV:    
     add t0 s1 zero        # NodoL
-    beq t0 zero check_next_instruction
+    beq t0 zero end_rev
     addi t1 zero 0        # IndexL
     addi t4 s3 -1         # IndexR
     REV_cycle:
-        bge t1 t4 check_next_instruction     # if indiceL >= indice
+        bge t1 t4 end_rev     # if indiceL >= indice
         
         add t3 s1 zero # NodoR
         addi t6 zero 0 
@@ -359,11 +385,17 @@ REV:
         addi t1 t1 1    # IndexL++
         addi t4 t4 -1   # IndexR-- 
         j REV_cycle
+    
+    end_rev:
+        jr ra
         
         
 
 SORT:
-    beq s1 zero check_next_instruction
+    addi sp, sp -8 # creo spazio nella stack
+    sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
+    
+    beq s1 zero end_sort
     add t1 s1 zero # puntatore alla testa
     li t0 0        # flag = 0 (0=nessuno scambio fatto nel ciclo, 1=scambio fatto nel ciclo)
 
@@ -384,17 +416,28 @@ SORT:
         add t1 t3 zero # passa al nodo successivo
         j SORT_loop
     check_swapped:
-        beq t0 zero check_next_instruction # se non sono stati effettuati scambi, concludi
+        beq t0 zero end_sort # se non sono stati effettuati scambi, concludi
         j SORT
+        
+    end_sort:
+        lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+        addi sp sp 8   # restore dello stack
+    
+        jr ra
 
 
 
 SDX:
+    addi sp, sp -8 # creo spazio nella stack
+    sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
     jal get_last_node
+    lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+    addi sp sp 8   # restore dello stack
+    
     add t6 a0 zero    # Nodo precedente
     
     add t0 s1 zero    # testa
-    beq t0 zero check_next_instruction
+    beq t0 zero end_sdx
     
     add t3 t6 zero    # coda
     lb t2 0(t3)       # val_prec
@@ -409,27 +452,32 @@ SDX:
         addi t4 t4 1 # incremento il contatore
         
         bne t4 s3 SDX_loop 
-        
-    j check_next_instruction
+    
+    end_sdx:
+        jr ra
     
     
     
 
 SSX:
+    addi sp, sp -8 # creo spazio nella stack
+    sw ra 4(sp)    # metto il ra nella stack, visto che devo fare un'altra jal
     jal get_last_node
-    add t6 a0 zero    # Nodo precedente
+    lw ra 4(sp)    # al ritorno, riprendo ra dallo stack 
+    addi sp sp 8   # restore dello stack    add t6 a0 zero    # Nodo precedente
     
     add t0 s1 zero    # testa
-    beq t0 zero check_next_instruction # empty
+    beq t0 zero end_ssx # empty
     
-    beq s1 t6 check_next_instruction   # only one element
+    beq s1 t6 end_ssx   # only one element
     add t1 t6 zero    # coda
     lw t2 1(t0)       # secondo nodo 
     
     add s1 t2 zero    # ora la testa ? il secondo nodo
     #add s2 t0 zero    # ora la coda ? il primo nodo
     
-    j check_next_instruction
+    end_ssx:
+        jr ra
 
 
 address_generator:
@@ -547,7 +595,6 @@ swap_check:
     set_swapper:
         li a2 1
         jr ra
-
 
 
 exit:
