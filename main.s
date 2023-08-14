@@ -4,7 +4,7 @@ listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX
 # listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~DEL(A)~PRINT"
 # listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(e)~PRINT~DEL(b)~PRINT~DEL(d)~PRINT"
 
-lfsr:      .word 612178        # Seme del generatore di indirizzi, è un numero a caso
+lfsr:      .word 612178    # Seme del generatore di indirizzi, è un numero casuale
 
 newline:   .string "\n"
 space:     .string " "
@@ -18,26 +18,26 @@ li s1 0           # Puntatore alla testa
 li s3 0           # Contatore numero elementi della lista
 la s4 listInput   
 
-add a1 s4 zero    # Mette il primo carattere in a1
+add a1 s4 zero    # Carico il primo carattere in a1
 
 PARSING:
     check_initial_spaces:
-        lb t1 0(a1)             # carattere ora in t1
+        lb t1 0(a1)             # Carattere ora in t1
         li t2 32                # 32 è 'spazio' in ASCII
         bne t1 t2 check_add     # se non è uno spazio, jump
         addi a1 a1 1            # carattere successivo
-        j check_initial_spaces  # Le lettere accentate come è funzionano ù bene ì vabe à
+        j check_initial_spaces  # ripeti
 
     check_add:
         lb t1 0(a1)
         li t2 65
-        bne t1 t2 check_print            # controllo se è A, altrimenti provo P per PRINT
-        
+        bne t1 t2 check_print            # controllo se è A, altrimenti passo
+                                         # al controllo di P per PRINT
         addi a1 a1 1
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_next_instruction # controllo se è D, se non lo è, formattazione errata, passo a prossima istruzione
-    
+        bne t1 t2 check_next_instruction # controllo se è D. Se non lo è, la formattazione è errata, 
+                                         # passo alla prossima istruzione
         addi a1 a1 1
         lb t1 0(a1)
         li t2 68
