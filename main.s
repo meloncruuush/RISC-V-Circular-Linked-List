@@ -1,11 +1,6 @@
-# ricordati di fixare tutti i TODO!!!
-# controlla coerenza nomi funzioni etc
-# per relazione, parlare della formattazione del codice
-
 .data
 listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 # listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
-# listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
 # listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~DEL(A)~PRINT"
 # listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(e)~PRINT~DEL(b)~PRINT~DEL(d)~PRINT"
 
@@ -16,7 +11,6 @@ space:     .string " "
 squareL:   .string "[ "
 squareR:   .string "]"
 
-
 .text
 
 lw s0 lfsr        # Seme del generatore di indirizzi
@@ -25,7 +19,6 @@ li s3 0           # Contatore numero elementi della lista
 la s4 listInput   
 
 add a1 s4 zero    # Mette il primo carattere in a1
-
 
 PARSING:
     check_initial_spaces:
