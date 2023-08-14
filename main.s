@@ -1,6 +1,6 @@
 .data
-listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
-# listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
+# listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
+listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 
 # Test ADD
 # listInput: .string "ADD(a)~PRINT~ADD(b)~PRINT~ADD(c)~PRINT~ADD(d)~~ADD(e)~~ADD(f)~~ADD(g)~~ADD(h)~~ADD(i)~~ADD(j)~PRINT~ADD(k)~PRINT"
@@ -14,6 +14,9 @@ listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX
 # listInput: .string "SDX~PRINT~ADD(a)~PRINT~SDX~ADD(c)~ADD(x)~ADD(b)~ADD(h)~PRINT~SDX~PRINT~DEL(c)~PRINT~SDX~PRINT"
 # Test SORT
 # listInput: .string "SORT~PRINT~ADD(a)~PRINT~SORT~ADD(C)~ADD(.)~ADD(b)~ADD(1)~PRINT~SORT~PRINT~ADD(b)~ADD(b)~ADD(b)~PRINT~SORT~PRINT"
+# Test formattazione errata
+# listInput: .string "ADD(a)~PRIT~add(b)~PRINT~AD D(c)~PRINT~ADD(d)~rev~ADD(f)~SOLT~ADD(h)~SdX~ADD(j)~PRINT~ADD(k)~PRINT"
+
 
 lfsr:      .word 612178    # Seme del generatore di indirizzi, è un numero casuale
 
