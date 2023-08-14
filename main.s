@@ -4,7 +4,7 @@ listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX
 # listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~DEL(A)~PRINT"
 # listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(e)~PRINT~DEL(b)~PRINT~DEL(d)~PRINT"
 
-lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
+lfsr:      .word 612178        # Seme del generatore di indirizzi, è un numero a caso
 
 newline:   .string "\n"
 space:     .string " "
@@ -23,20 +23,20 @@ add a1 s4 zero    # Mette il primo carattere in a1
 PARSING:
     check_initial_spaces:
         lb t1 0(a1)             # carattere ora in t1
-        li t2 32                # 32 ? 'spazio' in ASCII
-        bne t1 t2 check_add     # se non ? uno spazio, jump
+        li t2 32                # 32 è 'spazio' in ASCII
+        bne t1 t2 check_add     # se non è uno spazio, jump
         addi a1 a1 1            # carattere successivo
         j check_initial_spaces
 
     check_add:
         lb t1 0(a1)
         li t2 65
-        bne t1 t2 check_print            # controllo se ? A, altrimenti provo P per PRINT
+        bne t1 t2 check_print            # controllo se è A, altrimenti provo P per PRINT
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_next_instruction # controllo se ? D, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è D, se non lo è, formattazione errata, passo a prossima istruzione
     
         addi a1 a1 1
         lb t1 0(a1)
@@ -67,7 +67,7 @@ PARSING:
     check_print:
         lb t1 0(a1)
         li t2 80
-        bne t1 t2 check_del              # controllo se ? P, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_del              # controllo se è P, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
@@ -96,7 +96,7 @@ PARSING:
     check_del:
         lb t1 0(a1)
         li t2 68
-        bne t1 t2 check_rev               # controllo se ? D, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_rev               # controllo se è D, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
@@ -116,7 +116,7 @@ PARSING:
         addi a1 a1 1
         lb a2 0(a1)                       # questa volta salvo il carattere in a2
         li t2 32
-        blt a2 t2 check_next_instruction  # if < 32, TODO, ma non ? 47 < x < 58 ? 
+        blt a2 t2 check_next_instruction  # if < 32, TODO, ma non è 47 < x < 58 è 
         li t2 125
         bgt a2 t2 check_next_instruction  # if > 125
         
@@ -132,7 +132,7 @@ PARSING:
     check_rev:
         lb t1 0(a1)
         li t2 82
-        bne t1 t2 check_s                           # controllo se ? R, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_s                           # controllo se è R, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         lb t1 0(a1)
@@ -151,21 +151,21 @@ PARSING:
     check_s:
         lb t1 0(a1)
         li t2 83
-        bne t1 t2 check_next_instruction  # controllo se ? S, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_next_instruction  # controllo se è S, se non lo è, formattazione errata, passo a prossima istruzione
         
         addi a1 a1 1
         
         lb t1 0(a1)
         li t2 79
-        beq t1 t2 check_sort              # controllo se ? O di sort
+        beq t1 t2 check_sort              # controllo se è O di sort
         
         lb t1 0(a1)
         li t2 68
-        beq t1 t2 check_sdx               # controllo se ? D di svx
+        beq t1 t2 check_sdx               # controllo se è D di svx
         
         lb t1 0(a1)
         li t2 83
-        beq t1 t2 check_ssx               # controllo se ? S di ssx
+        beq t1 t2 check_ssx               # controllo se è S di ssx
         
         j check_next_instruction
 
@@ -173,12 +173,12 @@ PARSING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 82
-        bne t1 t2 check_next_instruction # controllo se ? R, se non lo ?, formattazione errata, passo a prossima istruzione        
+        bne t1 t2 check_next_instruction # controllo se è R, se non lo è, formattazione errata, passo a prossima istruzione        
         
         addi a1 a1 1
         lb t1 0(a1)
         li t2 84
-        bne t1 t2 check_next_instruction # controllo se ? T
+        bne t1 t2 check_next_instruction # controllo se è T
         
         jal check_spaces
         jal SORT
@@ -188,7 +188,7 @@ PARSING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 88
-        bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è X, se non lo è, formattazione errata, passo a prossima istruzione
  
         jal check_spaces
         jal SDX   
@@ -198,7 +198,7 @@ PARSING:
         addi a1 a1 1
         lb t1 0(a1)
         li t2 88
-        bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
+        bne t1 t2 check_next_instruction # controllo se è X, se non lo è, formattazione errata, passo a prossima istruzione
  
         jal check_spaces
         jal SSX   
@@ -212,7 +212,7 @@ PARSING:
             jr ra
 
     check_next_instruction:
-            lb t1 0(a1)                 # ciclo che continua finch? non trova ~ e prosegue il parsing, o null e chiude il programma
+            lb t1 0(a1)                 # ciclo che continua finchè non trova ~ e prosegue il parsing, o null e chiude il programma
             
             li t2 0                     # null                        
             beq t1 t2 exit
@@ -319,9 +319,9 @@ DEL:
 
     delete_element:
         lw t3 1(t0)                 # PAHEAD
-        beq t0 s1 del_first_element # Se il nodo attuale ? uguale alla testa globale, siamo nel primo elemento
+        beq t0 s1 del_first_element # Se il nodo attuale è uguale alla testa globale, siamo nel primo elemento
         #jal get_last_node
-        #beq t0 s2 del_last_element  # Se il nodo attuale ? uguale alla coda globale, allora sto esaminando l'ultimo elemento
+        #beq t0 s2 del_last_element  # Se il nodo attuale è uguale alla coda globale, allora sto esaminando l'ultimo elemento
         sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
         sb zero 0(t0)               # Azzero il dato
         sw zero 1(t0)               # Azzero PAHEAD
@@ -331,12 +331,12 @@ DEL:
         j DEL_loop    # Passo all'istruzione successiva
 
     del_first_element:
-        beq t0 t3 del_only_element    # Se sta puntando a se stesso, ? l'unico elemento
+        beq t0 t3 del_only_element    # Se sta puntando a se stesso, è l'unico elemento
         sw t3 1(t1)       # Salvo PAHEAD nel precedente
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
         lw t0 1(t1)
-        add s1 t3 zero    # Aggiorno testa global (la nuova testa ? il successivo)
+        add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
         j DEL_loop
@@ -344,7 +344,7 @@ DEL:
     del_only_element:
         sb zero 0(t0)    # Azzero DATA
         sw zero 1(t0)    # Azzero PAHEAD
-        add s1 zero zero # Azzero S1, non ci sono pi? elementi nella lista
+        add s1 zero zero # Azzero S1, non ci sono piè elementi nella lista
         addi s3 s3 -1               # Decremento il contatore globale
         # addi t4 t4 1                # Incremento il contatore del ciclo
         j end_del
@@ -396,7 +396,7 @@ SORT:
         lb a4 0(t1)    # primo elemento da confrontare
         lw t3 1(t1)    # puntatore al successivo
         lb a5 0(t3)    # secondo elemento da confrontare
-        beq t3 s1 check_swapped # se il successivo ? la testa, siamo al primo elemento
+        beq t3 s1 check_swapped # se il successivo è la testa, siamo al primo elemento
         jal swap_check 
         bne a2 zero swap_element
         add t1 t3 zero
@@ -439,7 +439,7 @@ SDX:
     SDX_loop:
         lb t1 0(t0)    # valore attuale
         sb t2 0(t0)    # carico valore precedente nel nodo
-        add t2 t1 zero # aggiorno il valore precedente, che ora ? il valore attuale
+        add t2 t1 zero # aggiorno il valore precedente, che ora è il valore attuale
         
         lw t0 1(t0)    # prossimo nodo
         addi t4 t4 1 # incremento il contatore
@@ -466,8 +466,8 @@ SSX:
     add t1 t6 zero    # coda
     lw t2 1(t0)       # secondo nodo 
     
-    add s1 t2 zero    # ora la testa ? il secondo nodo
-    #add s2 t0 zero    # ora la coda ? il primo nodo
+    add s1 t2 zero    # ora la testa è il secondo nodo
+    #add s2 t0 zero    # ora la coda è il primo nodo
     
     end_ssx:
         jr ra
@@ -496,7 +496,7 @@ address_generator:
     add s0 a3 zero
     add t0 a3 zero
     
-    # controllo se la memoria ? libera
+    # controllo se la memoria è libera
     
     #lw t1 0(t0)                   
     #bne t1 zero address_generator # byte 0-3 (PBACK)
@@ -516,7 +516,7 @@ address_generator:
 get_last_node:
     add t0 s1 zero           # Nodo attuale
     addi t1 zero 1           # t1 = 1
-    beq s3 t1 get_last_node_go_back        # se c'? un solo elemento, il primo elemento ? anche la coda
+    beq s3 t1 get_last_node_go_back        # se c'è un solo elemento, il primo elemento è anche la coda
     addi t1 zero 1           # t1 = 0
     get_last_node_loop:
         lw t0 1(t0)          # prossimo nodo
