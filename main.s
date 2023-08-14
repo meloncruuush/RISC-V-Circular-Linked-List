@@ -7,6 +7,7 @@
 listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
 # listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~SORT~PRINT"
+# listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(x)~PRINT~DEL(a)~PRINT~ADD(e)~PRINT~SORT~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -20,12 +21,10 @@ squareR:   .string "]"
 
 lw s0 lfsr        # Seme del generatore di indirizzi
 li s1 0           # Puntatore alla testa
-li s2 0           # Indirizzo della coda
 li s3 0           # Contatore numero elementi della lista
 la s4 listInput   
 
 add a1 s4 zero    # Mette il primo carattere in a1
-
 
 
 PARSING:
@@ -68,8 +67,7 @@ PARSING:
         li t2 41
         bne t1 t2 check_next_instruction # parantesiR
         
-        jal x1, check_spaces
-        
+        jal check_spaces
         j ADD
 
     check_print:
@@ -97,8 +95,7 @@ PARSING:
         li t2 84
         bne t1 t2 check_next_instruction # T
         
-        jal x1, check_spaces
-        
+        jal check_spaces
         j PRINT
 
     check_del:
@@ -133,8 +130,7 @@ PARSING:
         li t2 41
         bne t1 t2 check_next_instruction # parentesiR
         
-        jal x1, check_spaces
-        
+        jal check_spaces
         j DEL
 
     check_rev:
@@ -152,8 +148,7 @@ PARSING:
         li t2 86
         bne t1 t2 check_next_instruction            # R
      
-        jal x1, check_spaces
-        
+        jal check_spaces
         j REV
 
     check_s:
@@ -188,8 +183,7 @@ PARSING:
         li t2 84
         bne t1 t2 check_next_instruction # controllo se ? T
         
-        jal x1, check_spaces
-        
+        jal check_spaces
         j SORT
 
     check_sdx:
@@ -198,8 +192,7 @@ PARSING:
         li t2 88
         bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
  
-        jal x1, check_spaces
-        
+        jal check_spaces
         j SDX   
 
     check_ssx:
@@ -208,8 +201,7 @@ PARSING:
         li t2 88
         bne t1 t2 check_next_instruction # controllo se ? X, se non lo ?, formattazione errata, passo a prossima istruzione
  
-        jal x1, check_spaces
-        
+        jal check_spaces
         j SSX   
 
     check_spaces:          
@@ -217,7 +209,7 @@ PARSING:
             lb t1 0(a1)
             li t2 32
             beq t1 t2 check_spaces
-            jalr x0, x1, 0
+            jr ra
 
     check_next_instruction:
             lb t1 0(a1)                 # ciclo che continua finch? non trova ~ e prosegue il parsing, o null e chiude il programma
@@ -229,7 +221,6 @@ PARSING:
             beq t1 t2 next_instruction
             
             addi a1 a1 1
-            
             j check_next_instruction
             
     next_instruction:
@@ -242,25 +233,33 @@ PARSING:
 
 ADD:
     jal address_generator        # genero l'indirizzo in cui salvare il nodo. Indirizzo in a3
-    
     bne s1 zero not_first_ADD    
-    
     add s1 a3 zero               # Aggiorno il puntatore alla testa
-    add s2 a3 zero               # Aggiorno il puntatore alla coda
-    lw t0 1(a3)
     sb a2 0(a3)                  # Salvo DATA
-    sw t0 1(a3)                  # Salvo PAHEAD (che punta su se stesso)
-    
+    sw s1 1(a3)                  # Salvo PAHEAD (che punta su se stesso)
     addi s3 s3 1                 # Incrementa il puntatore di 1
     j check_next_instruction
     
     not_first_ADD:
         sb a2 0(a3)              # Salvo DATA
-        sw s1 1(a3)              # Salvo PAHEAD
-        sw a3 1(s2)              # Aggiorno PAHEAD del nodo precedente
-        add s2 a3 zero           # aggiorno il puntatore alla coda
+        sw s1 1(a3)              # Salvo PAHEAD (ultimo nodo punta sempre alla testa)       
 
-        addi s3 s3 1                 # Incrementa il puntatore di 1
+        ########################### ASTRARRE ###################################
+        add t0 s1 zero           # carico la testa
+        addi t1 zero 1           # t1 = 1
+        beq s3 t1 get_last_node_go_back1        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
+        addi t1 zero 1           # t1 = 0
+        get_last_node_loop1:
+            lw t0 1(t0)          # prossimo nodo
+            addi t1 t1 1         # t1++
+            blt t1, s3, get_last_node_loop1 # if t1 < s3 jump
+        get_last_node_go_back1:
+            add t2 t0 zero       # Ultimo elemento in s2
+    
+        ########################### ASTRARRE ###################################
+
+        sw a3 1(t2)              # Aggiorno PAHEAD del nodo precedente
+        addi s3 s3 1                 # Incrementa il contatore di 1
         j check_next_instruction
 
 
@@ -272,8 +271,9 @@ PRINT:
     li a7 4
     ecall
     
+    addi t0 zero 0
     PRINT_loop:
-        beq t1 s2 new_line       # Controllo quando arrivo all'ultimo elemento
+        beq t0 s3 new_line       # Controllo quando arrivo all'ultimo elemento
         
         lb a0 0(t1)              # Stampa DATA
         li a7 11        
@@ -283,11 +283,9 @@ PRINT:
         ecall
         
         lw t1 1(t1)              # Prossimo nodo
+        addi t0 t0 1
         j PRINT_loop
         new_line:
-            lb a0 0(t1)          # Stampa l'ultimo elemento
-            li a7 11        
-            ecall
             la a0 squareR        # Stampa "]"
             li a7 4
             ecall
@@ -295,12 +293,26 @@ PRINT:
             li a7 4
             ecall
             j check_next_instruction
-
+            
 
 DEL: 
     add t0 s1 zero                  # Nodo attuale
     beq t0 zero check_next_instruction
-    add t1 s2 zero                  # nodo precedente
+
+    ########################### ASTRARRE ###################################
+    addi t1 zero 1           # t1 = 1
+    beq s3 t1 get_last_node_go_back2        # se c'? un solo elemento, il primo elemento ? anche la coda
+    addi t1 zero 1           # t1 = 0
+    get_last_node_loop2:
+        lw t0 1(t0)          # prossimo nodo
+        addi t1 t1 1         # t1++
+        blt t1, s3, get_last_node_loop2 # if t1 < s3 jump
+    get_last_node_go_back2:
+        add t1 t0 zero       # nodo precedente (coda)
+        add t0 s1 zero                  # Nodo attuale
+    
+    ########################### ASTRARRE ###################################    
+   
     addi t4 zero 0                  # Contatore ciclo (i = 0)
     addi t5 s3 0                    # (i < list.size)
     DEL_loop:
@@ -309,28 +321,29 @@ DEL:
         lw t0 1(t0)                 # passo al nodo successivo
         lw t1 1(t1)                 # aggiorno anche il precedente        
         addi t4 t4 1                # incremento il contatore
-        beq t4 t5 check_next_instruction
+        bge t4 t5 check_next_instruction
         j DEL_loop
 
     delete_element:
         lw t3 1(t0)                 # PAHEAD
-        beq t0 s1 del_first_element # Se il nodo attuale è uguale alla testa globale, siamo nel primo elemento
-        beq t0 s2 del_last_element  # Se il nodo attuale è uguale alla coda globale, allora sto esaminando l'ultimo elemento
+        beq t0 s1 del_first_element # Se il nodo attuale ? uguale alla testa globale, siamo nel primo elemento
+        #jal get_last_node
+        #beq t0 s2 del_last_element  # Se il nodo attuale ? uguale alla coda globale, allora sto esaminando l'ultimo elemento
         sw t3 1(t1)                 # Carico il PAHEAD attuale nel PAHEAD del nodo precedente
         sb zero 0(t0)               # Azzero il dato
         sw zero 1(t0)               # Azzero PAHEAD
-        lw t0 1(t1)                 # 
+        lw t0 1(t1)                  
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
         j DEL_loop    # Passo all'istruzione successiva
 
     del_first_element:
-        beq t0 t3 del_only_element    # Se sta puntando a se stesso, è l'unico elemento
+        beq t0 t3 del_only_element    # Se sta puntando a se stesso, ? l'unico elemento
         sw t3 1(t1)       # Salvo PAHEAD nel precedente
         sb zero 0(t0)     # Azzero DATA
         sw zero 1(t0)     # Azzero PAHEAD
         lw t0 1(t1)
-        add s1 t3 zero    # Aggiorno testa global (la nuova testa è il successivo)
+        add s1 t3 zero    # Aggiorno testa global (la nuova testa ? il successivo)
         addi s3 s3 -1               # Decremento il contatore globale
         addi t4 t4 1                # Incremento il contatore del ciclo
         j DEL_loop
@@ -338,20 +351,10 @@ DEL:
     del_only_element:
         sb zero 0(t0)    # Azzero DATA
         sw zero 1(t0)    # Azzero PAHEAD
-        add s1 zero zero # Azzero S1, non ci sono più elementi nella lista
+        add s1 zero zero # Azzero S1, non ci sono pi? elementi nella lista
         addi s3 s3 -1               # Decremento il contatore globale
-        addi t4 t4 1                # Incremento il contatore del ciclo
+        # addi t4 t4 1                # Incremento il contatore del ciclo
         j check_next_instruction
-
-    del_last_element:
-        sw t3 1(t1)       # Salvo PAHEAD nel precedente
-        sb zero 0(t0)     # Azzero DATA
-        sw zero 1(t0)     # Azzero PAHEAD
-        add s2 t1 zero    # Aggiorno coda global (la nuova coda è il precedente)
-        addi s3 s3 -1               # Decremento il contatore globale
-        addi t4 t4 1                # Incremento il contatore del ciclo
-        j check_next_instruction
-
 
 
 REV:    
@@ -391,7 +394,7 @@ SORT:
         lb a4 0(t1)    # primo elemento da confrontare
         lw t3 1(t1)    # puntatore al successivo
         lb a5 0(t3)    # secondo elemento da confrontare
-        beq t3 s1 check_swapped # se il successivo è la testa, siamo al primo elemento
+        beq t3 s1 check_swapped # se il successivo ? la testa, siamo al primo elemento
         jal swap_check 
         bne a2 zero swap_element
         add t1 t3 zero
@@ -412,14 +415,29 @@ SORT:
 SDX:
     add t0 s1 zero    # testa
     beq t0 zero check_next_instruction
-    add t3 s2 zero    # coda
+    
+    ########################### ASTRARRE ###################################
+    addi t1 zero 1           # t1 = 1
+    beq s3 t1 get_last_node_go_back3        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
+    addi t1 zero 1           # t1 = 0
+    get_last_node_loop3:
+        lw t0 1(t0)          # prossimo nodo
+        addi t1 t1 1         # t1++
+        blt t1, s3, get_last_node_loop3 # if t1 < s3 jump
+    get_last_node_go_back3:
+        add t6 t0 zero       # Ultimo elemento in s2
+        add t0 s1 zero    # testa
+    
+    ########################### ASTRARRE ###################################
+    
+    add t3 t6 zero    # coda
     lb t2 0(t3)       # val_prec
     addi t4 zero 0    # contatore
     
     SDX_loop:
         lb t1 0(t0)    # valore attuale
         sb t2 0(t0)    # carico valore precedente nel nodo
-        add t2 t1 zero # aggiorno il valore precedente, che ora è il valore attuale
+        add t2 t1 zero # aggiorno il valore precedente, che ora ? il valore attuale
         
         lw t0 1(t0)    # prossimo nodo
         addi t4 t4 1 # incremento il contatore
@@ -434,12 +452,27 @@ SDX:
 SSX:
     add t0 s1 zero    # testa
     beq t0 zero check_next_instruction # empty
-    beq s1 s2 check_next_instruction   # only one element
-    add t1 s2 zero    # coda
+    
+    ########################### ASTRARRE ###################################
+    addi t1 zero 1           # t1 = 1
+    beq s3 t1 get_last_node_go_back4        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
+    addi t1 zero 1           # t1 = 0
+    get_last_node_loop4:
+        lw t0 1(t0)          # prossimo nodo
+        addi t1 t1 1         # t1++
+        blt t1, s3, get_last_node_loop4 # if t1 < s3 jump
+    get_last_node_go_back4:
+        add t6 t0 zero       # Ultimo elemento in s2
+        add t0 s1 zero    # testa
+    
+    ########################### ASTRARRE ###################################
+    
+    beq s1 t6 check_next_instruction   # only one element
+    add t1 t6 zero    # coda
     lw t2 1(t0)       # secondo nodo 
     
-    add s1 t2 zero    # ora la testa è il secondo nodo
-    add s2 t0 zero    # ora la coda è il primo nodo
+    add s1 t2 zero    # ora la testa ? il secondo nodo
+    #add s2 t0 zero    # ora la coda ? il primo nodo
     
     j check_next_instruction
 
@@ -482,7 +515,6 @@ address_generator:
     lw t1 1(t0)    # byte 1-4 (PAHEAD)
     bne t1 zero address_generator
     jr ra
-
 
 
 swap_check:
