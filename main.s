@@ -26,7 +26,7 @@ PARSING:
         li t2 32                # 32 è 'spazio' in ASCII
         bne t1 t2 check_add     # se non è uno spazio, jump
         addi a1 a1 1            # carattere successivo
-        j check_initial_spaces
+        j check_initial_spaces  # Le lettere accentate come è funzionano ù bene ì vabe à
 
     check_add:
         lb t1 0(a1)
