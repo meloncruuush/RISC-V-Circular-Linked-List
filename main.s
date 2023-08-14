@@ -6,8 +6,8 @@
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
 listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~PRINT~SORT~PRINT~DEL(b)~DEL(B) ~PRI~REV~PRINT"
-# listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~SORT~PRINT"
-# listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(x)~PRINT~DEL(a)~PRINT~ADD(e)~PRINT~SORT~PRINT"
+# listInput: .string "ADD(A)~ADD(b)~ADD(1)~ADD(*)~ADD(A)~PRINT~DEL(A)~PRINT"
+# listInput: .string "ADD(a)~ADD(b)~ADD(c)~ADD(d)~ADD(x)~PRINT~DEL(a)~PRINT~ADD(e)~PRINT~SDX~PRINT"
 
 lfsr:      .word 612178        # Seme del generatore di indirizzi, ? un numero a caso
 
@@ -244,19 +244,8 @@ ADD:
         sb a2 0(a3)              # Salvo DATA
         sw s1 1(a3)              # Salvo PAHEAD (ultimo nodo punta sempre alla testa)       
 
-        ########################### ASTRARRE ###################################
-        add t0 s1 zero           # carico la testa
-        addi t1 zero 1           # t1 = 1
-        beq s3 t1 get_last_node_go_back1        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
-        addi t1 zero 1           # t1 = 0
-        get_last_node_loop1:
-            lw t0 1(t0)          # prossimo nodo
-            addi t1 t1 1         # t1++
-            blt t1, s3, get_last_node_loop1 # if t1 < s3 jump
-        get_last_node_go_back1:
-            add t2 t0 zero       # Ultimo elemento in s2
-    
-        ########################### ASTRARRE ###################################
+        jal get_last_node
+        add t2 a0 zero    # Nodo precedente
 
         sw a3 1(t2)              # Aggiorno PAHEAD del nodo precedente
         addi s3 s3 1                 # Incrementa il contatore di 1
@@ -296,23 +285,11 @@ PRINT:
             
 
 DEL: 
-    add t0 s1 zero                  # Nodo attuale
+    jal get_last_node
+    add t1 a0 zero    # Nodo precedente
+    add t0 s1 zero    # Nodo attuale
     beq t0 zero check_next_instruction
 
-    ########################### ASTRARRE ###################################
-    addi t1 zero 1           # t1 = 1
-    beq s3 t1 get_last_node_go_back2        # se c'? un solo elemento, il primo elemento ? anche la coda
-    addi t1 zero 1           # t1 = 0
-    get_last_node_loop2:
-        lw t0 1(t0)          # prossimo nodo
-        addi t1 t1 1         # t1++
-        blt t1, s3, get_last_node_loop2 # if t1 < s3 jump
-    get_last_node_go_back2:
-        add t1 t0 zero       # nodo precedente (coda)
-        add t0 s1 zero                  # Nodo attuale
-    
-    ########################### ASTRARRE ###################################    
-   
     addi t4 zero 0                  # Contatore ciclo (i = 0)
     addi t5 s3 0                    # (i < list.size)
     DEL_loop:
@@ -413,22 +390,11 @@ SORT:
 
 
 SDX:
+    jal get_last_node
+    add t6 a0 zero    # Nodo precedente
+    
     add t0 s1 zero    # testa
     beq t0 zero check_next_instruction
-    
-    ########################### ASTRARRE ###################################
-    addi t1 zero 1           # t1 = 1
-    beq s3 t1 get_last_node_go_back3        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
-    addi t1 zero 1           # t1 = 0
-    get_last_node_loop3:
-        lw t0 1(t0)          # prossimo nodo
-        addi t1 t1 1         # t1++
-        blt t1, s3, get_last_node_loop3 # if t1 < s3 jump
-    get_last_node_go_back3:
-        add t6 t0 zero       # Ultimo elemento in s2
-        add t0 s1 zero    # testa
-    
-    ########################### ASTRARRE ###################################
     
     add t3 t6 zero    # coda
     lb t2 0(t3)       # val_prec
@@ -450,22 +416,11 @@ SDX:
     
 
 SSX:
+    jal get_last_node
+    add t6 a0 zero    # Nodo precedente
+    
     add t0 s1 zero    # testa
     beq t0 zero check_next_instruction # empty
-    
-    ########################### ASTRARRE ###################################
-    addi t1 zero 1           # t1 = 1
-    beq s3 t1 get_last_node_go_back4        # se c'? un solo elemento, l'ultimo elemento ? anche la coda
-    addi t1 zero 1           # t1 = 0
-    get_last_node_loop4:
-        lw t0 1(t0)          # prossimo nodo
-        addi t1 t1 1         # t1++
-        blt t1, s3, get_last_node_loop4 # if t1 < s3 jump
-    get_last_node_go_back4:
-        add t6 t0 zero       # Ultimo elemento in s2
-        add t0 s1 zero    # testa
-    
-    ########################### ASTRARRE ###################################
     
     beq s1 t6 check_next_instruction   # only one element
     add t1 t6 zero    # coda
@@ -516,6 +471,19 @@ address_generator:
     bne t1 zero address_generator
     jr ra
 
+
+get_last_node:
+    add t0 s1 zero           # Nodo attuale
+    addi t1 zero 1           # t1 = 1
+    beq s3 t1 get_last_node_go_back        # se c'? un solo elemento, il primo elemento ? anche la coda
+    addi t1 zero 1           # t1 = 0
+    get_last_node_loop:
+        lw t0 1(t0)          # prossimo nodo
+        addi t1 t1 1         # t1++
+        blt t1, s3, get_last_node_loop      # while t1 < s3 
+    get_last_node_go_back:
+        add a0 t0 zero       # nodo precedente (coda)
+        jr ra
 
 swap_check:
     check_first:
