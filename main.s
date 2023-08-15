@@ -1,6 +1,6 @@
 .data
 # listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~     ADD(9) ~SSX~SORT~PRINT~DEL(b)~DEL(B) ~PRI~SDX~REV~PRINT"
-listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
+# listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb)~DEL(B) ~PRINT~REV~SDX~PRINT"
 
 # Test ADD
 # listInput: .string "ADD(a)~PRINT~ADD(b)~PRINT~ADD(c)~PRINT~ADD(d)~~ADD(e)~~ADD(f)~~ADD(g)~~ADD(h)~~ADD(i)~~ADD(j)~PRINT~ADD(k)~PRINT"
@@ -11,7 +11,7 @@ listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRIN
 # Test SSX
 # listInput: .string "SSX~PRINT~ADD(a)~PRINT~SSX~ADD(c)~ADD(x)~ADD(b)~ADD(h)~PRINT~SSX~PRINT~DEL(c)~PRINT~SSX~PRINT"
 # Test SDX
-# listInput: .string "SDX~PRINT~ADD(a)~PRINT~SDX~ADD(c)~ADD(x)~ADD(b)~ADD(h)~PRINT~SDX~PRINT~DEL(c)~PRINT~SDX~PRINT"
+ listInput: .string "SDX~PRINT~ADD(a)~PRINT~SDX~ADD(c)~ADD(x)~ADD(b)~ADD(h)~PRINT~SDX~PRINT~DEL(c)~PRINT~SDX~PRINT"
 # Test SORT
 # listInput: .string "SORT~PRINT~ADD(a)~PRINT~SORT~ADD(C)~ADD(.)~ADD(b)~ADD(1)~PRINT~SORT~PRINT~ADD(b)~ADD(b)~ADD(b)~PRINT~SORT~PRINT"
 # Test formattazione errata
@@ -407,7 +407,7 @@ SORT:
     end_sort:    
         jr ra
 
-SDX:
+SVX:
     addi sp, sp -4                  # creo spazio nella stack
     sw ra 4(sp)                     # metto il ra nella stack, visto che devo fare un'altra jal
     jal get_last_node
@@ -427,23 +427,33 @@ SDX:
         lw t0 1(t0)                 # prossimo nodo
         addi t4 t4 1                # incremento il contatore
         bne t4 s3 SDX_loop 
-    end_sdx:
+    end_sddx:
         jr ra    
-
-SSX:
+        
+SDX:
     addi sp, sp -4                  # creo spazio nella stack
     sw ra 4(sp)                     # metto il ra nella stack, visto che devo fare un'altra jal
     jal get_last_node
     lw ra 4(sp)                     # al ritorno, riprendo ra dallo stack 
     addi sp sp 4                    # restore dello stack    
     
-    add t6 a0 zero                  # coda
     add t0 s1 zero                  # testa
-    beq t0 zero end_ssx
-    beq s1 t6 end_ssx
-    add t1 t6 zero    # coda -> t1
-    lw t2 1(t0)       # carico il secondo nodo 
-    add s1 t2 zero    # ora la testa è il secondo nodo
+    add t1 a0 zero                  # coda
+    beq t0 zero end_sdx             # lista vuota
+    addi t2 zero 1
+    beq s3 t2 end_sdx               # lista con un solo elemento
+      
+    add s1 t1 zero                  # ora la testa è l'ultimo nodo
+    end_sdx:
+        jr ra        
+        
+SSX:
+    add t0 s1 zero                  
+    beq t0 zero end_ssx             # lista vuota
+    addi t1 zero 1
+    beq s3 t1 end_ssx               # lista con un solo elemento
+    lw t2 1(t0)                     # carico il secondo nodo 
+    add s1 t2 zero                  # ora la testa è il secondo nodo
     end_ssx:
         jr ra
 
