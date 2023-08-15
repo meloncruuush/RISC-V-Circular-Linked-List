@@ -405,30 +405,7 @@ SORT:
         beq t0 zero end_sort        # se non sono stati effettuati scambi, concludi
         j SORT
     end_sort:    
-        jr ra
-
-SVX:
-    addi sp, sp -4                  # creo spazio nella stack
-    sw ra 4(sp)                     # metto il ra nella stack, visto che devo fare un'altra jal
-    jal get_last_node
-    lw ra 4(sp)                     # al ritorno, riprendo ra dallo stack 
-    addi sp sp 4                    # restore dello stack
-    
-    add t6 a0 zero                  # Nodo precedente
-    add t0 s1 zero                  # testa
-    beq t0 zero end_sdx
-    add t3 t6 zero                  # coda
-    lb t2 0(t3)                     # val_prec
-    addi t4 zero 0                  # contatore
-    SDX_loop:
-        lb t1 0(t0)                 # valore attuale
-        sb t2 0(t0)                 # carico valore precedente nel nodo
-        add t2 t1 zero              # aggiorno il valore precedente, che ora è il valore attuale
-        lw t0 1(t0)                 # prossimo nodo
-        addi t4 t4 1                # incremento il contatore
-        bne t4 s3 SDX_loop 
-    end_sddx:
-        jr ra    
+        jr ra  
         
 SDX:
     addi sp, sp -4                  # creo spazio nella stack
@@ -442,7 +419,6 @@ SDX:
     beq t0 zero end_sdx             # lista vuota
     addi t2 zero 1
     beq s3 t2 end_sdx               # lista con un solo elemento
-      
     add s1 t1 zero                  # ora la testa è l'ultimo nodo
     end_sdx:
         jr ra        
