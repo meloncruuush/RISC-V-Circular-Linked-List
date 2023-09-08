@@ -6,389 +6,284 @@ author:
   matteo.becatti@stud.unifi.it\
   7006081
 title: |
-  Gestione di Liste Circolari in RISC-V\
-  Progetto di Architettura degli Elaboratori 22-23\
+  Management of Circular Lists in RISC-V\
+  Computer Architecture Project 22-23\
   ![image](Images/Unifi-logo.jpg)
 ---
 
 # Parsing
 
-## Parsing dell'input
+## Input Parsing
 
-Gli input sono passati al programma tramite la stringa *listInput*, che
-contiene le varie istruzioni, separate l'una da l'altra con una tilda.\
-Il primo passo è controllare se sono presenti spazi all'inizio della
-stringa, utilizzando *check_initial_spaces*. Finchè sono presenti spazi,
-li ignoriamo e passiamo al carattere successivo.
+Inputs are passed to the program through the *listInput* string, which
+contains the various instructions, separated from each other by a tilde.\
+The first step is to check if there are spaces at the beginning of the
+string, using *check_initial_spaces*. As long as there are spaces,
+we ignore them and move on to the next character.
 
-I caratteri vengono letti uno alla volta. Una versione semplificata del
-processo eseguito dal programma è illustrata nell'immagine seguente:
+Characters are read one at a time. A simplified version of the
+process performed by the program is illustrated in the following image:
 
-![Controllo dei
-caratteri](Images/diagramma-parsing.jpeg){#fig:parsing-image}
+![Character
+control](Images/diagramma-parsing.jpeg){#fig:parsing-image}
 
-Leggiamo il carattere e chiediamo \"È la lettera A?\" Se sì, procediamo
-con i controlli di formattazione per ADD, se la risposta è no, ci
-chiediamo \"È la lettera P?\" e così via per tutte le altre iniziali.
-Per ogni operazione viene seguito un processo molto simile, e le
-differenze tra di loro possono essere divise in tre categorie. I nomi
-dei controlli seguono la forma *check_nomeistruzione*, es: *check_add*
-per ADD.
+We read the character and ask "Is it the letter A?" If yes, we proceed
+with the formatting checks for ADD, if the answer is no, we
+ask "Is it the letter P?" and so on for all the other initials.
+For each operation, a very similar process is followed, and the
+differences between them can be divided into three categories. The names
+of the checks follow the form *check_instructionname*, e.g. *check_add*
+for ADD.
 
-Tutti i controlli finiscono con un jump-and-link verso la rispettiva
-istruzione della lista. Quando l'istruzione viene completata, il program
-counter torna nel punto da cui era stato chiamato utilizzando il return
-address. La riga successiva è sempre *\"j check_next_instruction\"*
+All checks end with a jump-and-link to the respective
+list instruction. When the instruction is completed, the program
+counter returns to the point from which it was called using the return
+address. The next line is always *"j check_next_instruction"*
 
 ## ADD, DEL
 
-Il parsing di ADD e DEL è identico, quindi per la spiegazione prendiamo
-ADD come esempio. La sintassi corretta deve seguire la forma ADD(n),
-dove n è l'elemento da aggiungere alla lista, e può essere solo un
-singolo carattere. Una volta letta la A, proseguiamo verso i caratteri
-successivi, facendo i necessari controlli. Leggiamo D due volte, e poi
-controlliamo che ci sia una parentesi aperta. Ora dobbiamo leggere il
-valore da aggiungere alla lista. Lo salviamo nel registro a2, in modo
-che possa essere passato come parametro successivamente, e verifichiamo
-che rientri in un range di valori ASCII accettabile (non tutti i valori
-sono ammessi). Ci assicuriamo che l'istruzione sia formattata
-correttamente con la parentesi chiusa alla fine, e saltiamo
-all'istruzione ADD per aggiungere il nuovo elemento alla lista.
+The parsing of ADD and DEL is identical, so for the explanation we take
+ADD as an example. The correct syntax must follow the form ADD(n),
+where n is the element to be added to the list, and can only be a
+single character. Once the A is read, we proceed to the next characters, making the necessary checks. We read D twice, and then
+check that there is an open parenthesis. Now we need to read the
+value to be added to the list. We save it in the a2 register, so
+that it can be passed as a parameter later, and we verify
+that it falls within an acceptable range of ASCII values (not all values
+are allowed). We make sure that the instruction is formatted
+correctly with the parenthesis closed at the end, and jump
+to the ADD instruction to add the new element to the list.
 
 ### jump-and-link
 
-Alla fine dei controlli, e dopo aver verificato che non ci siano spazi
-vuoti tramite la procedura *check_spaces*, viene effettuato un
-*jump-and-link* verso l'istruzione ADD. L'elemento da aggiungere viene
-passato come parametro, e la posizione del program counter è
-automaticamente salvata nel return address. Non ci aspettiamo valori di
-ritorno. Quando la ADD sarà conclusa, torneremo all'indirizzo salvato
-nel ra, e il passo successivo sarà saltare verso
-*check_next_instruction*. Questo procedimento è uguale anche per DEL,
-ovviamente in questo caso il parametro non è l'elemento da aggiungere,
-ma quello da rimuovere. Per le altre funzioni invece non vengono passati
-parametri.
+At the end of the checks, and after verifying that there are no blank spaces
+through the *check_spaces* procedure, a
+*jump-and-link* is made to the ADD instruction. The element to be added is
+passed as a parameter, and the position of the program counter is
+automatically saved in the return address. We do not expect return values. When the ADD is completed, we return to the address saved
+in the ra, and the next step is to jump to
+*check_next_instruction*. This procedure is the same for DEL,
+obviously in this case the parameter is not the element to be added,
+but the one to be removed. For the other functions, no parameters are passed.
 
 ## PRINT, REV
 
-PRINT e REV sono più semplici di ADD e DEL. Effettuano il controllo
-sulla formattazione delle lettere, ma non avendo parametri da dover
-gestire, saltano direttamente alla rispettiva istruzione, senza bisogno
-di dover toccare i registri per salvare dati.
+PRINT and REV are simpler than ADD and DEL. They perform the control
+on the formatting of the letters, but not having parameters to manage, they jump directly to the respective instruction, without needing
+to touch the registers to save data.
 
 ## SORT, SDX, SSX
 
-Fino ad ora le istruzione avevano tutte iniziali differenti. SORT, SDX e
-SSX invece iniziano tutte con S. Questa volta il programma effettua
-prima un controllo su S, e poi verifica quale è la lettera successiva,
-ed in base a quello che legge procede verso la rispettiva procedura.
-Anche in questo caso non ci sono parametri da dover gestire, quindi
-saltiamo direttamente alla procedura corrispondente.
+So far the instructions all had different initials. SORT, SDX and
+SSX instead all start with S. This time the program first checks on S, and then verifies what is the next letter,
+and based on what it reads it proceeds to the respective procedure.
+Also in this case there are no parameters to manage, so
+we jump directly to the corresponding procedure.
 
-## Formattazione errata
+## Incorrect formatting
 
-Il programma è in grado di gestire le situazioni in cui la stringa di
-input non è formattata correttamente. Se ci sono spazi vuoti all'inizio
-o alla fine della stringa, oppure prima o dopo una tilda, verranno
-ignorati. Se sono presenti spazi all'interno dell'istruzione, essa verrà
-scartata. Durante la lettura di una istruzione, appena troviamo un
-errore di scrittura (ad esempio PRNT anzichè PRINT), scartiamo il
-comando e passiamo al prossimo. Nel caso delle istruzioni con parametri,
-se viene inserito più di un carattere dentro alle parentesi, la
-formattazione è considerata errata.
+The program is able to handle situations where the input string is
+not formatted correctly. If there are blank spaces at the beginning
+or at the end of the string, or before or after a tilde, they will be
+ignored. If there are spaces within the instruction, it will be
+discarded. During the reading of an instruction, as soon as we find a
+writing error (for example PRNT instead of PRINT), we discard the
+command and move on to the next one. In the case of instructions with parameters,
+if more than one character is inserted inside the parentheses, the
+formatting is considered incorrect.
 
-# Funzioni
+# Functions
 
-## Funzioni del programma
+## Program functions
 
-Una volta completato il parsing di una singola istruzione, viene
-effettuato un salto verso la rispettiva funzione. Ad esempio, quando
-*check_add* finisce con successo, salta verso *ADD*.
+Once the parsing of a single instruction is completed, a jump is made to the respective function. For example, when
+*check_add* ends successfully, it jumps to *ADD*.
 
 ## ADD
 
-La funzione di ADD si occupa di inserire nuovi elementi all'interno
-della lista. Inizia chiamando *address_generator*, che si occupa di
-generare l'indirizzo di memoria per il nodo che dobbiamo aggiungere
+The ADD function is responsible for inserting new elements within
+the list. It starts by calling *address_generator*, which is responsible for
+generating the memory address for the node that we need to add
 
-Una volta ottenuto l'indirizzo, controlliamo se l'operazione che stiamo
-facendo è la prima del suo tipo, poichè:
+Once the address is obtained, we check if the operation we are
+doing is the first of its kind, because:
 
--   Se la lista è vuota, aggiungiamo il nuovo nodo, lo sincronizziamo
-    con la testa globale (s1), e impostiamo il suo PAHEAD (il puntatore
-    al nodo successivo) verso se stesso.
+-   If the list is empty, we add the new node, synchronize it
+    with the global head (s1), and set its PAHEAD (the pointer
+    to the next node) to itself.
 
--   Se la lista non è vuota, e quindi c'è almeno un elemento, impostiamo
-    il puntatore del nuovo nodo verso la testa, ma dobbiamo anche
-    preoccuparci di collegare la coda con il nuovo nodo. Per farlo,
-    chiamiamo la procedura *get_last_node*, che ci restituisce l'ultimo
-    nodo della lista, e muoviamo il suo puntatore verso il nodo appena
-    aggiunto.
+-   If the list is not empty, and therefore there is at least one element, we set
+    the pointer of the new node to the head, but we also need to
+    connect the tail with the new node. To do this,
+    we call the *get_last_node* procedure, which returns the last
+    node of the list, and we move its pointer to the newly
+    added node.
 
 ### jal address_generator
 
-Per usare il generatore di indirizzi, abbiamo bisogno di effettuare un
-jal. Il problema è che abbiamo già fatto un jal dal parsing verso la
-funzione ADD, e facendone un altro andremo a perdere il return address.
-Possiamo utilizzare lo stack per risolvere questo problema. Creiamo uno
-stack di dimensione 4 byte e ci carichiamo il return address. Chiamiamo
-la *jal address_generator*, e al ritorno riprendiamo il return address
-dalla stack, e poi la resettiamo. Una illustrazione del comportamento
-dello stack pointer può essere vista in figura. Non essendoci bisogno di
-salvare parametri nello stack, il suo contenuto e le rispettive
-operazioni risultano molto basiche.
+To use the address generator, we need to make a
+jal. The problem is that we have already made a jal from the parsing to the
+ADD function, and by making another one we will lose the return address.
+We can use the stack to solve this problem. We create a
+stack of size 4 bytes and load the return address onto it. We call the *jal address_generator*, and on return we retrieve the return address
+from the stack, and then reset it. An illustration of the behavior
+of the stack pointer can be seen in the figure. As there is no need to
+save parameters in the stack, its content and the respective
+operations are very basic.
 
-![Stack prima, durante e dopo la
+![Stack before, during and after the
 jal](Images/stack-pointer.jpg){#fig:stack-image width="0.75\\linewidth"}
 
 ### jal get_last_node
 
-Nel corso del codice, abbiamo spesso bisogno di accedere all'ultimo
-elemento, ma le specifiche non permettono di salvare un puntatore
-globale verso la coda. Ho dunque scritto una funzione che cicla
-attraverso la lista e restituisce la coda. Anche qua però si pone lo
-stesso problema del generatore di indirizzi, dobbiamo effettuare un
-*jump_and_link* in una procedura interna. e la soluzione è sempre la
-stessa. Questa volta però abbiamo anche un parametro di ritorno, infatti
-il nodo coda viene restituito tramite il registro a0.
+In the course of the code, we often need to access the last
+element, but the specifications do not allow to save a global pointer
+to the tail. So I wrote a function that cycles
+through the list and returns the tail. Here too, however, the same problem arises as with the address generator, we need to make a
+*jump_and_link* to an internal procedure. and the solution is always the
+same. This time, however, we also have a return parameter, in fact
+the tail node is returned through the a0 register.
 
-### Generatore di indirizzi di memoria
+### Memory Address Generator
 
-Genera un indirizzo di memoria casuale a partire da un seed fornito. La
-procedura effettua 4 shift a destra del seed (di 1, $2^2$, $2^3$ e
-$2^5$) e salva i risultati in 4 registri temporanei diversi.
-Successivamente, questi risultati vengono combinati tramite una funzione
-XOR e il seed viene shiftato a destra di 2. Il risultato dello XOR viene
-shiftato a sinistra di $2^{15}$ e questi due valori vengono combinati
-tramite una funzione OR. Per ottenere solo i primi 16 bit del risultato
-dell'OR, si applica una funzione AND con il valore 0x0000ffff. L'output
-di questa operazione viene combinato tramite una funzione OR con il
-valore 0x00010000 per ottenere l'indirizzo generato. Questo indirizzo
-viene sovrascritto al seed precedente in caso di una futura chiamata
-della procedura.
+Generates a random memory address from a provided seed. The procedure performs 4 right shifts of the seed (by 1, $2^2$, $2^3$ and $2^5$) and saves the results in 4 different temporary registers. Subsequently, these results are combined using an XOR function and the seed is shifted to the right by 2. The result of the XOR is shifted to the left by $2^{15}$ and these two values are combined using an OR function. To obtain only the first 16 bits of the OR result, an AND function is applied with the value 0x0000ffff. The output of this operation is combined using an OR function with the value 0x00010000 to obtain the generated address. This address overwrites the previous seed in case of a future call of the procedure.
 
-Infine, la procedura controlla che la memoria puntata dall'indirizzo sia
-libera. In caso positivo, la funzione termina e restituisce l'indirizzo
-generato. In caso contrario, la procedura si richiama ricorsivamente per
-generare un nuovo indirizzo casuale.\"
+Finally, the procedure checks that the memory pointed to by the address is free. If so, the function ends and returns the generated address. Otherwise, the procedure recursively calls itself to generate a new random address.
 
 ## PRINT
 
-Stampa il contenuto della lista, mostrando gli elementi nello stesso
-ordine in cui si trovano all'interno della struttura. Inoltre aggiunge
-delle parentesi quadre per aumentare la chiarezza della lettura. Anche
-se la lista è vuota, verranno stampate delle parentesi per mostrare che
-la stampa è stata effettuata, ma non ci sono elementi nella lista.
+Prints the contents of the list, showing the elements in the same order in which they are found within the structure. It also adds square brackets to increase the clarity of reading. Even if the list is empty, brackets will be printed to show that the print has been performed, but there are no elements in the list.
 
-Il puntatore alla testa della lista viene copiato in un registro
-temporaneo, dandoci la possibilità di iterare senza dover modificare il
-puntatore originale. Tramite un controllo verifichiamo che sia stata
-effettuata almeno una operazione di ADD, in caso negativo non ci sarebbe
-niente da stampare, ed entrare nel ciclo sarebbe superfluo, dunque
-terminiamo l'esecuzione di PRINT per passare alla funzione successiva.
+The pointer to the head of the list is copied into a temporary register, giving us the ability to iterate without having to modify the original pointer. Through a check, we verify that at least one ADD operation has been performed, otherwise there would be nothing to print, and entering the loop would be superfluous, so we terminate the execution of PRINT to move on to the next function.
 
-La stampa avviene all'interno di un ciclo a contatore, che continua
-finchè non raggiungiamo il numero di elementi della lista. Ogni volta
-carichiamo in a0 il carattere da stampare, ed effettuiamo la chiamata di
-sistema. Alla fine della lista, chiudiamo la parentesi quadra e andiamo
-a capo.
+The print occurs within a counter loop, which continues until we reach the number of elements in the list. Each time we load into a0 the character to print, and we make the system call. At the end of the list, we close the square bracket and go to a new line.
 
 ## DEL
 
-Elimina un elemento dalla lista. Controlla se è stata fatta almeno una
-ADD, ed in caso negativo termina l'operazione e passa alla successiva.
-L'eliminazione avviene all'interno di un ciclo che scorre la lista
-finchè non trova un elemento che corrisponda al parametro passato in
-input, oppure arriva alla fine della lista e termina nel caso in cui
-l'elemento non sia presente.
+Deletes an element from the list. Checks if at least one ADD has been made, and if not, it ends the operation and moves on to the next one. The deletion occurs within a loop that scrolls through the list until it finds an element that matches the input parameter, or it reaches the end of the list and ends if the element is not present.
 
-Una volta trovato l'elemento, teniamo conto della sua posizione. Se il
-nodo si trova\...
+Once the element is found, we take into account its position. If the node is...
 
--   **in testa** alla lista, si fa una jump a *del_first_element*. La
-    memoria occupata dal nodo viene liberata, permettendo al generatore
-    di indirizzi di poterla riusare nell'eventualità in cui venga
-    selezionata di nuovo. Il puntatore alla testa della lista viene
-    spostato verso quello che era il secondo elemento.
+-   **at the head** of the list, it jumps to *del_first_element*. The memory occupied by the node is freed, allowing the address generator to reuse it in the event it is selected again. The pointer to the head of the list is moved to what was the second element.
 
--   **in una posizione intermedia** saltiamo a *del_element*. Il PAHEAD
-    del nodo precedente va impostato al nodo successivo rispetto a
-    quello che vogliamo eliminare, e azzeriamo il contenuto del nodo.
+-   **in an intermediate position** we jump to *del_element*. The PAHEAD of the previous node must be set to the node following the one we want to delete, and we zero the content of the node.
 
--   è **l'unico elemento**, liberiamo la memoria utilizzata dal nodo ed
-    eliminiamo il puntatore. Il puntatore alla testa globale viene a sua
-    volta azzerato.
+-   is **the only element**, we free the memory used by the node and delete the pointer. The global head pointer is in turn zeroed.
 
 ## REV
 
-Inverte la lista esistente.
+Reverses the existing list.
 
-Utilizzando due indici, uno che scorre la lista partendo dalla testa
-(sinistra) e uno dalla coda (destra), scambiamo gli elementi, finchè non
-troviamo una collisione tra gli indici. Si possono presentare due casi:
+Using two indices, one that scrolls through the list starting from the head (left) and one from the tail (right), we swap the elements, until we find a collision between the indices. Two cases can occur:
 
--   Elementi pari: Gli indici si incontreranno e si sorpasseranno,
-    terminando l'esecuzione.
+-   Even elements: The indices will meet and overtake each other, ending the execution.
 
--   Elementi dispari: Gli indici si incontreranno nell'elemento nel
-    mezzo alla lista, la cui posizione rimarrà invariata. L'esecuzione
-    termina.
+-   Odd elements: The indices will meet in the element in the middle of the list, whose position will remain unchanged. The execution ends.
 
-Se la lista fosse bidirezionale e con possibilità di salvare il
-puntatore della coda, l'esercizio sarebbe finito qua. Invece per
-funzionare c'è bisogno di fare qualche operazione in più. All'inizio di
-ogni iterazione di REV, c'è un ulteriore ciclo che si occupa di scorrere
-la lista finchè non raggiunge la posizione del contatore del nodo destro
-Questo contatore diminuisce ad ogni iterazione poichè deve scorrere
-verso sinistra, e ci permette di prelevare il nodo più a sinistra non
-ancora scambiato.
+If the list were bidirectional and with the possibility of saving the tail pointer, the exercise would be over here. Instead, to work, we need to do some more operations. At the beginning of each iteration of REV, there is an additional loop that scrolls through the list until it reaches the position of the right node counter. This counter decreases with each iteration as it must scroll to the left, and it allows us to pick up the leftmost node not yet swapped.
 
-![Esempio di REV per una lista con un numero di elementi pari. È
-visualizzata come un vettore per motivi di
-chiarezza.](Images/rev.jpg){#fig:enter-label width="0.75\\linewidth"}
+![Example of REV for a list with an even number of elements. It is displayed as a vector for clarity.](Images/rev.jpg){#fig:enter-label width="0.75\\linewidth"}
 
 ## SORT
 
-Per l'ordinamento ho deciso di usare il Bubble Sort, un algoritmo di
-ordinamento che confronta e scambia gli elementi adiacenti di una lista
-se sono nell'ordine sbagliato. La variante con flag usa una variabile
-booleana per verificare se la lista è già ordinata e interrompere
-l'algoritmo se non ci sono stati scambi nell'ultima iterazione.
+For sorting, I decided to use Bubble Sort, a sorting algorithm that compares and swaps adjacent elements in a list if they are in the wrong order. The flag variant uses a boolean variable to check if the list is already sorted and stop the algorithm if there were no swaps in the last iteration.
 
-Inizialmente la flag è impostata a 0, poichè ancora non ci sono stati
-spostamenti. Carichiamo gli elementi del nodo attuale e del nodo
-successivo per il confronto. Se il successivo è la testa, sappiamo che
-siamo arrivati all'ultimo elemento, e fermiamo il SORT_loop, altrimenti
-procediamo con i vari controlli all'interno di swap_check. Se swap_check
-mette la flag a true, saltiamo su swap_element, che come indito dal
-nome, scambia gli elementi. Una volta che il ciclo ha esaminato tutti
-gli elementi della lista, se la flag era stata impostata ad 1, SORT
-viene chiamato di nuovo, e il ciclo riparte dall'inizio. SORT verrà
-chiamato finchè tutti gli elementi non sono ordinati.
+Initially, the flag is set to 0, as there have been no movements yet. We load the elements of the current node and the next node for comparison. If the next one is the head, we know that we have reached the last element, and we stop the SORT_loop, otherwise we proceed with the various checks within swap_check. If swap_check sets the flag to true, we jump to swap_element, which, as the name suggests, swaps the elements. Once the cycle has examined all the elements of the list, if the flag had been set to 1, SORT is called again, and the cycle starts from the beginning. SORT will be called until all elements are sorted.
 
 ### swap_check
 
-Si occupa di confrontare i due elementi presi in esame dal Bubble Sort.
-Il progetto richiede un certo tipo di priorità:
-$carattere\ extra < numero < letter\ minuscola < lettera\ maiuscola$.
-Ognuna di queste categoria appartiene ad un range di valori ASCII (es:
-$65\leq maiuscola \leq 90$). La procedura non svolge niente di
-particolarmente elaborato, fa solo una serie di \"less then\" e
-\"greater then\" per capire all'interno di quale gruppo appartengono i
-due numeri da confrontare, e se risulta che debbano essere scambiati,
-imposta la flag a2 ad 1.
+It is responsible for comparing the two elements examined by the Bubble Sort. The project requires a certain type of priority: $extra\ character < number < lowercase\ letter < uppercase\ letter$. Each of these categories belongs to a range of ASCII values (e.g., $65\leq uppercase \leq 90$). The procedure does nothing particularly elaborate, it just does a series of "less than" and "greater than" to understand which group the two numbers to be compared belong to, and if it turns out that they need to be swapped, it sets the a2 flag to 1.
 
 ## SDX
 
-L'implementazione di SDX è molto semplice. Tramite *get_last_node*
-otteniamo la coda. Assegnamo al puntatore globale s1 la coda. Ora la
-lista è stata spostata di una posizione verso destra.
+The implementation of SDX is very simple. Through *get_last_node* we get the tail. We assign the tail to the global pointer s1. Now the list has been moved one position to the right.
 
-![Shift a destra degli elementi della
-lista](Images/SDX.jpg){#fig:sdx-image width="0.75\\linewidth"}
+![Shift to the right of the list elements](Images/SDX.jpg){#fig:sdx-image width="0.75\\linewidth"}
 
 ## SSX
 
-Lo shift a sinistra è ancora più semplice di quello a destra, poichè non
-dobbiamo andare a recuperare l'ultimo elemento della lista. Carichiamo
-la testa, leggiamo l'elemento successivo e lo assegniamo al puntatore
-globale della testa (s1). Ora gli elementi sono stati spostati verso
-sinistra di una posizione.
+The shift to the left is even simpler than the one to the right, as we don't have to go and retrieve the last element of the list. We load the head, read the next element and assign it to the global head pointer (s1). Now the elements have been moved one position to the left.
 
-![Shift a sinistra degli elementi della
-lista](Images/SSX.jpg){#fig:ssx-image width="0.75\\linewidth"}
+![Shift to the left of the list elements](Images/SSX.jpg){#fig:ssx-image width="0.75\\linewidth"}
 
 # Testing
 
-Durante lo sviluppo, ho utilizzato diversi tipi di stringhe per
-verificare il corretto funzionamento del codice. Queste stringhe erano
-inizialmente molto semplici, e man mano che tutto sembrava funzionare
-correttamente, le rendevo più complesse per verificare i casi limite.
+During development, I used different types of strings to verify the correct operation of the code. These strings were initially very simple, and as everything seemed to work correctly, I made them more complex to verify the edge cases.
 
-Sono arrivato alla conclusione che per verificare il corretto
-funzionamento del programma, ognuna delle operazioni della lista dovesse
-funzionare nei seguenti casi:
+I came to the conclusion that to verify the correct operation of the program, each of the list operations should work in the following cases:
 
--   Non ci sono elementi nella lista
+-   There are no elements in the list
 
--   C'è un solo elemento della lista
+-   There is only one element in the list
 
--   Ci sono due elementi nella lista
+-   There are two elements in the list
 
--   C'è un numero pari di elementi nella lista
+-   There is an even number of elements in the list
 
--   C'è un numero dispari di elementi nella lista
+-   There is an odd number of elements in the list
 
--   Ci sono errori di formattazione nel codice
+-   There are formatting errors in the code
 
-Per questo motivo, nella sezione .data del programma, oltre alle due
-stringhe di test fornite nelle specifiche del progetto, ho aggiunto una
-stringa per ogni funziona che testasse queste situazioni. Non è stata
-aggiunta una stringa per PRINT, poichè tutti i suoi casi di
-funzionamento sono visibili all'interno dei test delle altre funzioni.
+For this reason, in the .data section of the program, in addition to the two test strings provided in the project specifications, I added a string for each function that tested these situations. No string was added for PRINT, as all its cases of operation are visible within the tests of the other functions.
 
-Gli input sono visibili nell'immagine sottostante. Ogni riga è stata
-spezzata in due per favorire la leggibilità, nel codice originale ogni
-input si trova su una sola riga.
+The inputs are visible in the image below. Each line has been broken into two for readability, in the original code each input is on a single line.
 
-![I listInput presenti nel
-codice](Images/stringhe_di_test.png){#fig:enter-label
-width="1\\linewidth"}
+![The listInput present in the code](Images/stringhe_di_test.png){#fig:enter-label width="1\\linewidth"}
 
-## Risultati dei test
+## Test Results
 
-I risultati dei test visti nell'immagine sopra sono visibili di seguito:
+The test results seen in the image above are visible below:
 
-    # Primo input delle specifiche
+    # First input from specifications
     [ ; 1 9 a a B ]
     [ a 9 1 ; a ]
-    # Secondo input delle specifiche
+    # Second input from specifications
     [ 1 a B 9 ]
     [ 1 9 a B ]
     [ 1 9 a ]
     [ 1 a 9 ]
-    # Risultato test ADD
+    # ADD test result
     [ a ]
     [ a b ]
     [ a b c ]
     [ a b c d e f g h i j ]
     [ a b c d e f g h i j k ]
-    # Risultato test DEL
+    # DEL test result
     [ a ]
     [ ]
     [ a b a ]
     [ ]
     [ a b b c ]
     [ a c ]
-    # Risultato test REV
+    # REV test result
     [ ]
     [ a ]
     [ a c x b h ]
     [ h b x c a ]
     [ h b x a ]
     [ a x b h ]
-    # Risultato test SSX
+    # SSX test result
     [ ]
     [ a ]
     [ a c x b h ]
     [ c x b h a ]
     [ x b h a ]
     [ b h a x ]
-    # Risultato test SDX
+    # SDX test result
     [ ]
     [ a ]
     [ a c x b h ]
     [ h a c x b ]
     [ h a x b ]
     [ b h a x ]
-    # Risultato test SORT
+    # SORT test result
     [ ]
     [ a ]
     [ a C . b 1 ]
     [ . 1 a b C ]
     [ . 1 a b C b b b ]
     [ . 1 a b b b b C ]
-    # Risultato test formattazione errata
+    # Incorrect formatting test result
     [ a ]
     [ a ]
     [ a d f h j ]
