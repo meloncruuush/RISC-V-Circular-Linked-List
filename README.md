@@ -2,13 +2,12 @@
 author:
 - Author Name
 - |
-  Matteo Becatti\
-  matteo.becatti@stud.unifi.it\
-  7006081
+  Matteo Becatti
+- Author Email
+- |
+  matteo.becatti@edu.unifi.it
 title: |
-  Management of Circular Lists in RISC-V\
-  Computer Architecture Project 22-23\
-  ![image](Images/Unifi-logo.jpg)
+  Management of Circular Lists in RISC-V - Computer Architecture Project 22-23
 ---
 
 # Parsing
